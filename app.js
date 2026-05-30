@@ -232,7 +232,7 @@ const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[m]));
 const GRADE_COLOR = { A: "var(--grade-a)", B: "var(--grade-b)", C: "var(--grade-c)", D: "var(--grade-d)", F: "var(--grade-f)" };
 
-function renderResult(res, target) {
+function renderResult(res, target, scroll = true) {
   const issues = res.findings.filter((f) => !f.passed).sort((a, b) => ({ INFO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 }[b.severity] - { INFO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 }[a.severity]));
   const passed = res.findings.filter((f) => f.passed);
   const gc = GRADE_COLOR[res.grade];
@@ -265,7 +265,7 @@ function renderResult(res, target) {
     </div>
     <table class="findings"><thead><tr><th>Severity</th><th>ASI</th><th>Finding</th></tr></thead><tbody>${rows}</tbody></table>
     <p class="hint">Heuristic-only browser audit. Model-backed classification and JWS signature verification run in the CLI: <code>a2a-audit ${esc(target.startsWith("http") ? target : "&lt;url&gt;")} --backend deberta</code></p>`;
-  $("#result").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  if (scroll) $("#result").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function showError(msg) { $("#result").innerHTML = `<div class="err">${esc(msg)}</div>`; }
@@ -317,9 +317,10 @@ fetch("data/examples.json").then((r) => r.json()).then((d) => {
     el.addEventListener("click", () => renderResult(audit(ex.card), ex.name));
     grid.appendChild(el);
   });
-  // auto-show the injected-skill example as a striking default
+  // auto-show the injected-skill example as a striking default (no scroll:
+  // the page must load at the top, not jump down to the result).
   const def = d.examples.find((e) => e.name === "injected-skill") || d.examples[0];
-  if (def) renderResult(audit(def.card), def.name);
+  if (def) renderResult(audit(def.card), def.name, false);
 });
 
 /* ---- pre-tested dataset (results pre-computed on-device with full DeBERTa) ---- */
