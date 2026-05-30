@@ -252,7 +252,7 @@ const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[m]));
 const GRADE_COLOR = { A: "var(--grade-a)", B: "var(--grade-b)", C: "var(--grade-c)", D: "var(--grade-d)", F: "var(--grade-f)" };
 
-function renderResult(res, target, scroll = true) {
+function renderResult(res, target, scroll = true, showWarning = true) {
   const issues = res.findings.filter((f) => !f.passed).sort(sevDesc);
   const passed = res.findings.filter((f) => f.passed);
   const gc = GRADE_COLOR[res.grade];
@@ -269,7 +269,7 @@ function renderResult(res, target, scroll = true) {
   if (!issues.length) rows = `<tr><td colspan="3" style="color:var(--green);font-family:var(--mono)">No issues found.</td></tr>`;
   const passNames = [...new Set(passed.map((f) => f.check_id))].join(", ");
   $("#result").innerHTML = `
-    <div class="live-warning">⚠ The live demo audit uses heuristics only. To see classifier results, install locally with the classifiers, or select a card from the list above and click "Show pre-computed score".</div>
+    ${showWarning ? `<div class="live-warning">⚠ The live demo audit uses heuristics only. To see classifier results, install the tool locally with the classifiers, or select a card from the list above and click "Show pre-computed score".</div>` : ""}
     <div class="scorecard">
       <div class="grade-dial" style="box-shadow: inset 0 0 60px -20px ${gc}">
         <div class="g" style="color:${gc}">${res.grade}</div>
@@ -386,7 +386,7 @@ fetch("data/examples.json").then((r) => r.json()).then((d) => {
   // auto-show the injected-skill example as a striking default (no scroll:
   // the page must load at the top, not jump down to the result).
   const def = d.examples.find((e) => e.name === "injected-skill") || d.examples[0];
-  if (def) renderResult(audit(def.card), def.name, false);
+  if (def) renderResult(audit(def.card), def.name, false, false);
 });
 
 /* ---- pre-tested dataset (results pre-computed on-device with full DeBERTa) ---- */
