@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>a2a-audit · A2A Agent Card security posture</title>
+  <meta name="description" content="Security-posture auditor for A2A Agent Cards, scored against the OWASP Top 10 for Agentic Applications (ASI 2026). Paste a card or pick an example." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <div class="brand">a2a<span class="dot">·</span>audit</div>
+      <nav>
+        <a href="#try">Try it</a>
+        <a href="#posture">Posture data</a>
+        <a href="https://github.com/dannyliv/a2a-audit" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <p class="kicker">Agent Card security posture</p>
+      <h1>Grade an A2A agent's <em>security posture</em> in one read.</h1>
+      <p>a2a-audit fetches an agent's <code>/.well-known/agent-card.json</code>, checks it against the OWASP Top 10 for Agentic Applications (ASI 2026), and returns a single transparent score and letter grade. Conformance tools tell you if a card is valid; this tells you if it is safe to trust.</p>
+      <div class="meta">
+        <span class="tag">v0.3 JSON + v1.0 proto</span>
+        <span class="tag">6 checks → ASI 2026</span>
+        <span class="tag">SSRF-hardened</span>
+        <span class="tag">$0 · static demo</span>
+      </div>
+    </section>
+
+    <div class="console" id="try">
+      <div class="console-top">
+        <div class="dots"><i></i><i></i><i></i></div>
+        <span class="path">~/a2a-audit — interactive</span>
+      </div>
+      <div class="tabs">
+        <button class="active" data-pane="examples">Examples</button>
+        <button data-pane="paste">Paste card JSON</button>
+        <button data-pane="url">Fetch by URL</button>
+      </div>
+      <div class="panel-body">
+        <div class="pane active" id="pane-examples">
+          <div class="examples" id="examples"></div>
+          <p class="hint">Synthetic example cards (clean, unsigned, plaintext, injected skill, over-exposed, v1.0) — click to audit instantly.</p>
+        </div>
+        <div class="pane" id="pane-paste">
+          <textarea id="pasteBox" placeholder='Paste an Agent Card JSON here, e.g. {"name":"My Agent","url":"https://...","skills":[...]}'></textarea>
+          <div class="row"><button class="run" id="runPaste">Audit card</button></div>
+          <p class="hint">Runs entirely in your browser. Nothing is uploaded.</p>
+        </div>
+        <div class="pane" id="pane-url">
+          <input type="text" id="urlBox" placeholder="example-agent.com  or  https://example-agent.com/.well-known/agent-card.json" />
+          <div class="row"><button class="run" id="runUrl">Fetch &amp; audit</button></div>
+          <p class="hint">Browser fetch only works when the target sends permissive CORS headers (many won't). If it fails, use the Paste tab or the CLI.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="result"></div>
+
+    <section class="agg" id="posture">
+      <h2 class="sec">Real-world posture</h2>
+      <p class="lead">An aggregate snapshot of <span id="agg-n">—</span> live agent cards from a public registry, audited with a2a-audit. Aggregate only: no individual agent is named or labeled vulnerable (responsible disclosure).</p>
+      <div class="agg-grid">
+        <div class="card">
+          <h4>Grade distribution</h4>
+          <div class="bars" id="agg-bars"></div>
+        </div>
+        <div class="card">
+          <h4>Mean posture score</h4>
+          <div class="statbig" id="agg-mean">—</div>
+          <p class="disclosure" id="agg-specs"></p>
+        </div>
+        <div class="card" style="grid-column:1/-1">
+          <h4>Most common findings across the corpus</h4>
+          <ul class="findfreq" id="agg-freq"></ul>
+          <p class="disclosure">Source: a2aregistry.org live cards, captured 2026-05-29, canonical re-fetch. Stats aggregate only.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      a2a-audit · Apache-2.0 ·
+      <a href="https://github.com/dannyliv/a2a-audit" target="_blank" rel="noopener">repo</a> ·
+      <a href="https://a2a-protocol.org/latest/specification/" target="_blank" rel="noopener">A2A spec</a> ·
+      <a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/" target="_blank" rel="noopener">OWASP ASI 2026</a><br />
+      Static demo: the LLM skill-intent classifier and JWS signature verification run in the CLI, not the browser.
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
