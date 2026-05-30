@@ -2,6 +2,8 @@
 
 Security-posture auditor for [A2A (Agent2Agent)](https://a2a-protocol.org/) Agent Cards.
 
+**Live demo:** https://dannyliv.github.io/a2a-audit/ (heuristic gate only; the CLI adds model-backed classification)
+
 `a2a-audit` fetches an agent's canonical `/.well-known/agent-card.json`, parses it against the A2A object model (both the v0.2/v0.3 JSON shape and the v1.0 proto shape), runs security checks mapped to the [OWASP Top 10 for Agentic Applications (ASI 2026)](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/), and produces a risk-scored report: a human-readable table, machine JSON, and a non-zero exit code for CI.
 
 ## Why this exists

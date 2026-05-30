@@ -38,3 +38,6 @@ corpus.json
 models/
 *.onnx
 *.gguf
+
+# local screenshots
+.demo-shots/
