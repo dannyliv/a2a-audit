@@ -84,7 +84,7 @@ if len(entries) < TARGET:
             try:
                 fr = fetch_card(origin, timeout=6.0)
                 add(fr.raw.get("name"), fr.url, fr.raw, "awesome-a2a")
-            except Exception:  # noqa: BLE001
+            except Exception:  # noqa: BLE001, S112 - best-effort scraper, skip failures
                 continue
     except Exception as exc:  # noqa: BLE001
         print("  awesome fetch failed:", exc)
