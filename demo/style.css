@@ -1,8 +1,8 @@
 /* a2a-audit demo — security-console aesthetic */
 :root {
-  --bg: #0a0d0e;
-  --bg-soft: #11181a;
-  --panel: #0f1517;
+  --bg: #000;
+  --bg-soft: #0a0f10;
+  --panel: #050807;
   --line: #1f2c2f;
   --line-bright: #2c3e42;
   --ink: #e8f0ee;
@@ -73,16 +73,20 @@ header { border-bottom: 1px solid var(--line-bright); background: rgba(10,13,14,
 
 /* executive explainer */
 .exec { margin: 14px 0 26px; }
-.exec-lead { font-size: 17px; line-height: 1.6; color: var(--ink); max-width: 74ch; margin: 0 0 22px; }
+.exec-lead { font-size: 17px; line-height: 1.6; color: var(--ink); max-width: 74ch; margin: 0 0 22px; background: #000; border: 1px solid var(--line-bright); border-radius: 10px; padding: 16px 18px; }
 .exec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.exec-card { border: 1px solid var(--line-bright); border-radius: 12px; padding: 18px; background: var(--panel); }
+.exec-card { border: 1px solid var(--line-bright); border-radius: 12px; padding: 18px; background: #000; }
 .exec-card h4 { margin: 0 0 10px; font-family: var(--mono); font-size: 13px; color: var(--green); }
 .exec-card p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--ink-dim); }
-.vs-note { margin-top: 22px; border: 1px solid var(--line-bright); border-left: 3px solid var(--cyan); border-radius: 10px; padding: 18px; background: #0c1314; font-size: 14.5px; line-height: 1.6; color: var(--ink-dim); }
+.vs-note { margin-top: 22px; border: 1px solid var(--line-bright); border-left: 3px solid var(--cyan); border-radius: 10px; padding: 18px; background: #000; font-size: 14.5px; line-height: 1.6; color: var(--ink-dim); }
 .vs-note strong { color: var(--ink); }
-.vs-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13.5px; }
-.vs-table th { text-align: left; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-faint); padding: 8px 10px; border-bottom: 1px solid var(--line-bright); }
-.vs-table td { padding: 9px 10px; border-bottom: 1px solid var(--line); color: var(--ink-dim); vertical-align: top; }
+.vs-lead { margin: 0 0 16px; }
+.vs-table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 13.5px; background: #000; border: 1px solid var(--line-bright); border-radius: 8px; overflow: hidden; }
+.vs-table th { text-align: left; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink); padding: 11px 14px; background: #0c1314; border-bottom: 1px solid var(--line-bright); }
+.vs-table th + th, .vs-table td + td { border-left: 1px solid var(--line); }
+.vs-table td { padding: 11px 14px; border-bottom: 1px solid var(--line); color: var(--ink-dim); vertical-align: top; }
+.vs-table tbody tr:last-child td { border-bottom: none; }
+.vs-table tr.us-row { background: rgba(0,229,160,0.06); }
 .vs-table td.us { color: var(--green); font-weight: 600; }
 @media (max-width: 720px) { .exec-grid { grid-template-columns: 1fr; } }
 
