@@ -18,6 +18,14 @@ jobs:
         uses: astral-sh/setup-uv@v3
       - name: Set up Python
         run: uv python install ${{ matrix.python-version }}
+      # llama-cpp-python (a default dep, used by the gguf backend) compiles from
+      # source. Install it from the project's prebuilt CPU wheel index so CI does
+      # not need a C++ toolchain. End-user installs still build it normally.
+      - name: Pre-install llama-cpp-python (prebuilt CPU wheel)
+        run: >-
+          uv pip install --system "llama-cpp-python>=0.2.80"
+          --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+          --index-strategy unsafe-best-match
       - name: Install (with dev extras)
         run: uv pip install --system -e ".[dev,llm]"
       - name: Lint (ruff)
