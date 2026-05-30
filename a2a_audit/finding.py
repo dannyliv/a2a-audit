@@ -58,7 +58,7 @@ _SEVERITY_RANK: dict[Severity, int] = {
 class Asi(str, Enum):
     """OWASP Top 10 for Agentic Applications (ASI), 2026 edition.
 
-    Published 2025-12-09 by the OWASP GenAI Security Project. See RESEARCH.md §5.
+    Published 2025-12-09 by the OWASP GenAI Security Project.
     """
 
     ASI01 = "ASI01"

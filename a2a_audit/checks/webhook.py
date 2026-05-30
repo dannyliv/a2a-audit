@@ -6,7 +6,7 @@ validate the target, it becomes an SSRF pivot (callable against internal/cloud
 metadata endpoints). From the card alone we assess posture, not the live
 endpoint, so findings are framed as risk indicators.
 
-Caveat (RESEARCH §5.3): OWASP ASI07 text emphasizes message spoofing / Agent-in-
+Caveat: OWASP ASI07 text emphasizes message spoofing / Agent-in-
 the-Middle more than SSRF, so webhook-SSRF coverage under ASI07 is partial.
 """
 

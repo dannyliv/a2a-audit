@@ -2,7 +2,7 @@
 
 We fetch attacker-influenced URLs (the user passes a domain; the registry
 hands us ``wellKnownURI`` values), so this module is itself a security
-boundary. Defenses (RESEARCH §6.4, threat model in SECURITY.md):
+boundary. Defenses (threat model in SECURITY.md):
   - scheme allowlist (http/https only)
   - DNS-resolve the host and reject private / loopback / link-local /
     reserved / cloud-metadata addresses

@@ -1,9 +1,9 @@
 # Architecture
 
 `a2a-audit` is a small, layered pipeline. This document covers the design
-decisions, the threat model for the tool itself, and the v2 sketch. For the
-research that informed these choices (A2A object model, signing, competitive
-landscape, ASI mapping), see the project's `RESEARCH.md`.
+decisions, the threat model for the tool itself, and the v2 sketch (A2A object
+model, signing, competitive landscape, ASI mapping). For the empirical red-team
+evaluation (corpus, metrics, methodology), see `redteam/README.md`.
 
 ## Scope: posture, not conformance
 

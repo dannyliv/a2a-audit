@@ -1,6 +1,6 @@
 """a2aregistry.org client.
 
-Embedded card fields are a STALE snapshot (RESEARCH §4.6) so they are used only
+Embedded card fields are a STALE snapshot so they are used only
 as a discovery index; callers re-fetch each canonical /.well-known card before
 auditing. Pagination is offset-based (limit<=100), requests are serial with
 exponential backoff (no `?page` param; deep pagination 403s).

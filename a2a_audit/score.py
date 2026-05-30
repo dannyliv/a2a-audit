@@ -1,6 +1,6 @@
 """Composite posture scoring: findings -> 0-100 score + letter grade.
 
-This is the differentiator (RESEARCH §3.3): a transparent, opinionated,
+This is the differentiator: a transparent, opinionated,
 diffable grade per card. Score starts at 100 and subtracts a penalty per
 non-passing finding = severity_weight x check_weight. Weights are configurable
 so teams can tune the opinion without forking.

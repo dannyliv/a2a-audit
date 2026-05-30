@@ -178,3 +178,5 @@ a2a-audit is a free and open-source tool provided for research and educational p
 a2a-audit is not a security certification, an audit of record, or a substitute for professional security review. A high score or passing grade does not guarantee that an agent is secure, and a low score does not by itself prove an agent is exploitable. Checks are heuristic, the model-backed analysis is probabilistic, and results may contain false positives and false negatives.
 
 You are solely responsible for how you use this tool and how you act on its output. Do not rely on it as the sole basis for any production, procurement, or trust decision. To the maximum extent permitted by law, the authors and contributors accept no liability for any claim, damages, or other loss arising from use of the tool or its results. Audit only agents you are authorized to assess.
+
+By: Danny Livshits

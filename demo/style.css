@@ -204,3 +204,18 @@ footer a:hover { color: var(--green); }
   .grade-dial { max-width: 150px; }
   .bar nav { display: none; }
 }
+
+
+/* ---- blue pre-computed button (distinct from the green live-audit button) ---- */
+.run.precomp{background:var(--cyan);color:#001018}
+.run.precomp:hover:not(:disabled){filter:brightness(1.1)}
+
+/* ---- readability: lift every loose text block off the background glow ---- */
+/* The body has soft radial glows; text sitting directly on them is harder to */
+/* read. Wrap each loose text element in a solid black box so nothing bleeds   */
+/* through behind the words. Cards/console/result already sit on solid panels. */
+.hero{background:#000;border:1px solid var(--line);border-radius:18px;padding:48px 30px 30px;margin-top:18px}
+.sec{background:#000;display:inline-block;padding:6px 16px;border-radius:10px;border:1px solid var(--line)}
+.exec-lead,.vs-lead,.lead,.diagram-caption,.hint{background:#000;border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+.diagram-caption{display:block;text-align:center}
+footer .wrap{background:#000;border:1px solid var(--line);border-radius:14px;padding:20px 22px}

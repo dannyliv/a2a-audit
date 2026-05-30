@@ -1,6 +1,6 @@
 """Pydantic models for the A2A Agent Card and a version-agnostic normalizer.
 
-Two serialization models exist (RESEARCH.md §1): the v0.2/v0.3 JSON shape
+Two serialization models exist: the v0.2/v0.3 JSON shape
 (flat ``url`` + ``preferredTransport`` + ``additionalInterfaces``, ``type``
 discriminator on security schemes, ``supportsAuthenticatedExtendedCard`` at
 root) and the v1.0 proto shape (``supportedInterfaces`` array, extended-card

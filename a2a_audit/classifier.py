@@ -1,6 +1,6 @@
 """Skill-description intent classifier (ASI01).
 
-Two stages (RESEARCH §6):
+Two stages:
   1. A high-recall heuristic YAML gate (rules/injection_patterns.yaml) flags
      candidate skills. Regex alone over-flags, so a match is a candidate, not a
      verdict.

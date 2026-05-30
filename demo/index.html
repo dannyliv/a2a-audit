@@ -61,8 +61,8 @@
             <select id="jsonPreset"><option value="">Pick one of <span id="jsonCount">…</span> real agent cards…</option></select>
           </div>
           <textarea id="pasteBox" placeholder='Or paste an Agent Card JSON here, e.g. {"name":"My Agent","url":"https://...","skills":[...]}'></textarea>
-          <div class="row"><button class="run" id="runPaste">Audit card (heuristic, live)</button></div>
-          <p class="hint">Picking a pre-tested card shows a result pre-computed on-device with the full DeBERTa classifier. Pasting your own runs the heuristic gate live in your browser. Nothing is uploaded. Note: the browser demo only uses heuristic, download and install the full version to use with classifiers.</p>
+          <div class="row"><button class="run precomp" id="showPrecompJson" disabled>Show pre-computed score</button> <button class="run" id="runPaste">Audit card (heuristic, live)</button></div>
+          <p class="hint">Pick a pre-tested card, then click "Show pre-computed score" for a result pre-computed on-device with the full DeBERTa classifier. Pasting your own and clicking "Audit card" runs the heuristic gate live in your browser. Nothing is uploaded. Note: the browser demo only uses the heuristic gate; download and install the full version to run the classifiers.</p>
         </div>
         <div class="pane" id="pane-url">
           <div class="preset">
@@ -70,8 +70,8 @@
             <select id="urlPreset"><option value="">Pick one of the pre-tested agent URLs…</option></select>
           </div>
           <input type="text" id="urlBox" placeholder="Or enter: example-agent.com  /  https://example-agent.com/.well-known/agent-card.json" />
-          <div class="row"><button class="run" id="runUrl">Fetch &amp; audit (heuristic, live)</button></div>
-          <p class="hint">Picking a pre-tested URL shows an on-device full-classifier result (no live fetch). Entering your own attempts a live browser fetch (often blocked by CORS); if it fails, use Paste or the CLI.</p>
+          <div class="row"><button class="run precomp" id="showPrecompUrl" disabled>Show pre-computed score</button> <button class="run" id="runUrl">Fetch &amp; audit (heuristic, live)</button></div>
+          <p class="hint">Pick a pre-tested URL, then click "Show pre-computed score" for an on-device full-classifier result (no live fetch). Entering your own and clicking "Fetch & audit" attempts a live browser fetch (often blocked by CORS); if it fails, use Paste or the CLI.</p>
         </div>
       </div>
     </div>
@@ -261,6 +261,7 @@
       <a href="https://a2a-protocol.org/latest/specification/" target="_blank" rel="noopener">A2A spec</a> ·
       <a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/" target="_blank" rel="noopener">OWASP ASI 2026</a><br />
       Heuristic-only demo. Model-backed skill classification (local DeBERTa or Qwen2.5, OpenAI-compatible, or Claude) and JWS signature verification run in the CLI.
+      <p class="by-line">By: Danny Livshits</p>
       <p class="disclaimer-note">Disclaimer: a2a-audit is a free, open-source tool provided for research and educational purposes, "as is" and without warranty of any kind. It is not a certification, a guarantee of security, or professional security advice. A passing grade does not mean an agent is safe, and findings may be incomplete or inaccurate. You are solely responsible for any use; the authors accept no liability for any damages or losses arising from use of the tool or its output, including in production systems. Verify all results independently.</p>
     </div>
   </footer>

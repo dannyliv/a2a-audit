@@ -307,23 +307,68 @@ document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("cli
 
 $("#runPaste").addEventListener("click", () => auditText($("#pasteBox").value, "(pasted card)"));
 
+// Deselect-on-edit: when the user types or pastes their own card, clear the
+// matching pre-tested dropdown and disable its "Show pre-computed score" button
+// so a stale pre-calculated selection cannot linger over their own input.
+(function () {
+  const pasteBox = $("#pasteBox");
+  if (pasteBox) pasteBox.addEventListener("input", () => {
+    const sel = $("#jsonPreset"); if (sel) sel.value = "";
+    const btn = $("#showPrecompJson"); if (btn) btn.disabled = true;
+  });
+  const urlBox = $("#urlBox");
+  if (urlBox) urlBox.addEventListener("input", () => {
+    const sel = $("#urlPreset"); if (sel) sel.value = "";
+    const btn = $("#showPrecompUrl"); if (btn) btn.disabled = true;
+  });
+})();
+
+// Public CORS proxies used only as a fallback for the live-URL path. They
+// forward a request to an already-public agent card (no secrets, no auth), so
+// routing it through a relay is safe for this demo. We try the direct fetch
+// first and only fall back to a proxy when the browser blocks cross-origin.
+// codetabs is the primary relay (most reliable in testing); allorigins is the
+// secondary. corsproxy.io and thingproxy were dropped (paywalled / dead).
+const CORS_PROXIES = [
+  (u) => "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(u),
+  (u) => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+];
+
+async function fetchCard(u) {
+  // Direct first: works for same-origin and CORS-permissive cards.
+  try {
+    const r = await fetch(u, { headers: { Accept: "application/json" } });
+    if (r.ok) {
+      const raw = await r.json();
+      if (raw && typeof raw === "object") return raw;
+    }
+  } catch (e) { /* CORS or network: fall through to proxy */ }
+  // Proxy fallback for cross-origin agents that block browser fetches.
+  for (const mk of CORS_PROXIES) {
+    try {
+      const r = await fetch(mk(u), { headers: { Accept: "application/json" } });
+      if (!r.ok) continue;
+      const text = await r.text();
+      let raw;
+      try { raw = JSON.parse(text); } catch (e) { continue; }
+      if (raw && typeof raw === "object" && !Array.isArray(raw)) return raw;
+    } catch (e) { /* try next proxy */ }
+  }
+  return null;
+}
+
 $("#runUrl").addEventListener("click", async () => {
   const url = $("#urlBox").value.trim();
   if (!url) { showError("Enter a URL or domain."); return; }
   let origin = url.includes("://") ? url : "https://" + url;
   const base = origin.replace(/\/$/, "");
   const candidates = base.endsWith(".json") ? [base] : [base + "/.well-known/agent-card.json", base + "/.well-known/agent.json"];
-  $("#result").innerHTML = `<p class="hint">fetching ${esc(candidates[0])} …</p>`;
+  $("#result").innerHTML = `<p class="hint">fetching ${esc(candidates[0])} … (direct, then via CORS relay if blocked)</p>`;
   for (const u of candidates) {
-    try {
-      const r = await fetch(u, { headers: { Accept: "application/json" } });
-      if (!r.ok) continue;
-      const raw = await r.json();
-      renderResult(audit(raw), u);
-      return;
-    } catch (e) { /* CORS or network; try next */ }
+    const raw = await fetchCard(u);
+    if (raw) { renderResult(audit(raw), u); return; }
   }
-  showError("Could not fetch the card from the browser (most agents block cross-origin requests / CORS). Copy the card JSON into the Paste tab, or run the CLI: a2a-audit " + url);
+  showError("Could not fetch the card live (direct fetch blocked by CORS and the public relay is unavailable for this host). Copy the card JSON into the Paste tab, or run the CLI: a2a-audit " + url);
 });
 
 /* load examples + aggregate */
@@ -382,6 +427,7 @@ let PRETESTED = [];
 fetch("data/pretested.json").then((r) => r.json()).then((d) => {
   PRETESTED = d.entries || [];
   const urlSel = $("#urlPreset"), jsonSel = $("#jsonPreset");
+  const showUrlBtn = $("#showPrecompUrl"), showJsonBtn = $("#showPrecompJson");
   const jc = $("#jsonCount"); if (jc) jc.textContent = PRETESTED.length;
   PRETESTED.forEach((e, i) => {
     const g = e.report.grade;
@@ -389,14 +435,25 @@ fetch("data/pretested.json").then((r) => r.json()).then((d) => {
     if (urlSel) { const o = document.createElement("option"); o.value = String(i); o.textContent = `[${g}] ${(e.url || e.name).replace(/^https?:\/\//, "").slice(0, 60)}`; urlSel.appendChild(o); }
     if (jsonSel) { const o = document.createElement("option"); o.value = String(i); o.textContent = label; jsonSel.appendChild(o); }
   });
+  // Selecting a pre-tested entry fills the box and enables the blue
+  // "Show pre-computed score" button. The stored full-classifier result is
+  // shown only when that button is clicked; the live audit stays separate.
   if (urlSel) urlSel.addEventListener("change", () => {
+    const e = PRETESTED[+urlSel.value];
+    if (e) $("#urlBox").value = e.url || "";
+    if (showUrlBtn) showUrlBtn.disabled = !e;
+  });
+  if (showUrlBtn) showUrlBtn.addEventListener("click", () => {
     const e = PRETESTED[+urlSel.value]; if (!e) return;
-    $("#urlBox").value = e.url || "";
     renderPrecomputed(e.report, e.url || e.name);
   });
   if (jsonSel) jsonSel.addEventListener("change", () => {
+    const e = PRETESTED[+jsonSel.value];
+    if (e) $("#pasteBox").value = JSON.stringify(e.card, null, 2);
+    if (showJsonBtn) showJsonBtn.disabled = !e;
+  });
+  if (showJsonBtn) showJsonBtn.addEventListener("click", () => {
     const e = PRETESTED[+jsonSel.value]; if (!e) return;
-    $("#pasteBox").value = JSON.stringify(e.card, null, 2);
     renderPrecomputed(e.report, e.name || e.url);
   });
 }).catch(() => { /* dataset optional */ });

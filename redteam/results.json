@@ -1,0 +1,21 @@
+{
+  "mode": "heuristic",
+  "recall": 1.0,
+  "precision": 0.967741935483871,
+  "fpr": 0.03333333333333333,
+  "accuracy": 0.9833333333333333,
+  "confusion": {
+    "tp": 30,
+    "fp": 1,
+    "tn": 29,
+    "fn": 0
+  },
+  "passed": true,
+  "errors": [
+    {
+      "id": "b17",
+      "type": "false-positive",
+      "text": "Explains common shell commands such as curl and wget to beginners learning the t"
+    }
+  ]
+}
