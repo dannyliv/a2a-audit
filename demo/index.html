@@ -15,8 +15,8 @@
     <div class="bar">
       <div class="brand">a2a<span class="dot">·</span>audit</div>
       <nav>
-        <a href="#how">How it works</a>
         <a href="#try">Try it</a>
+        <a href="#how">How it works</a>
         <a href="#fullstack">Pipeline</a>
         <a href="#posture">Posture data</a>
         <a href="https://github.com/dannyliv/a2a-audit" target="_blank" rel="noopener">GitHub</a>
@@ -36,6 +36,47 @@
         <span class="tag">$0 · static demo</span>
       </div>
     </section>
+
+    <div class="console" id="try">
+      <div class="console-top">
+        <div class="dots"><i></i><i></i><i></i></div>
+        <span class="path">~/a2a-audit: interactive</span>
+      </div>
+      <div class="demo-banner">
+        <strong>Heuristic gate only.</strong> This browser demo runs the fast regex pre-filter and the static checks. It does not run the model stage. The CLI adds model-backed skill classification: a local <span class="mono">DeBERTa</span> injection classifier, a local <span class="mono">Qwen2.5-7B</span>, any OpenAI-compatible server, or Claude. <a href="#fullstack">How the full pipeline works.</a>
+      </div>
+      <div class="tabs">
+        <button class="active" data-pane="examples">Examples</button>
+        <button data-pane="paste">Paste card JSON</button>
+        <button data-pane="url">Fetch by URL</button>
+      </div>
+      <div class="panel-body">
+        <div class="pane active" id="pane-examples">
+          <div class="examples" id="examples"></div>
+          <p class="hint">Synthetic example cards (clean, unsigned, plaintext, injected skill, over-exposed, v1.0): click to audit instantly.</p>
+        </div>
+        <div class="pane" id="pane-paste">
+          <div class="preset">
+            <label for="jsonPreset">Pre-tested card JSON <span class="precalc-tag">pre-calculated</span></label>
+            <select id="jsonPreset"><option value="">Pick one of <span id="jsonCount">…</span> real agent cards…</option></select>
+          </div>
+          <textarea id="pasteBox" placeholder='Or paste an Agent Card JSON here, e.g. {"name":"My Agent","url":"https://...","skills":[...]}'></textarea>
+          <div class="row"><button class="run" id="runPaste">Audit card (heuristic, live)</button></div>
+          <p class="hint">Picking a pre-tested card shows a result pre-computed on-device with the full DeBERTa classifier. Pasting your own runs the heuristic gate live in your browser. Nothing is uploaded.</p>
+        </div>
+        <div class="pane" id="pane-url">
+          <div class="preset">
+            <label for="urlPreset">Pre-tested agent URL <span class="precalc-tag">pre-calculated</span></label>
+            <select id="urlPreset"><option value="">Pick one of the pre-tested agent URLs…</option></select>
+          </div>
+          <input type="text" id="urlBox" placeholder="Or enter: example-agent.com  /  https://example-agent.com/.well-known/agent-card.json" />
+          <div class="row"><button class="run" id="runUrl">Fetch &amp; audit (heuristic, live)</button></div>
+          <p class="hint">Picking a pre-tested URL shows an on-device full-classifier result (no live fetch). Entering your own attempts a live browser fetch (often blocked by CORS); if it fails, use Paste or the CLI.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="result"></div>
 
     <section class="diagram-wrap" id="how">
       <h2 class="sec">How a2a-audit works</h2>
@@ -164,46 +205,6 @@
       <p class="diagram-caption">Static checks are offline. Only the skill-intent check calls a model, and the model stage runs in the CLI. This demo runs the heuristic gate.</p>
     </section>
 
-    <div class="console" id="try">
-      <div class="console-top">
-        <div class="dots"><i></i><i></i><i></i></div>
-        <span class="path">~/a2a-audit: interactive</span>
-      </div>
-      <div class="demo-banner">
-        <strong>Heuristic gate only.</strong> This browser demo runs the fast regex pre-filter and the static checks. It does not run the model stage. The CLI adds model-backed skill classification: a local <span class="mono">DeBERTa</span> injection classifier, a local <span class="mono">Qwen2.5-7B</span>, any OpenAI-compatible server, or Claude. <a href="#fullstack">How the full pipeline works.</a>
-      </div>
-      <div class="tabs">
-        <button class="active" data-pane="examples">Examples</button>
-        <button data-pane="paste">Paste card JSON</button>
-        <button data-pane="url">Fetch by URL</button>
-      </div>
-      <div class="panel-body">
-        <div class="pane active" id="pane-examples">
-          <div class="examples" id="examples"></div>
-          <p class="hint">Synthetic example cards (clean, unsigned, plaintext, injected skill, over-exposed, v1.0): click to audit instantly.</p>
-        </div>
-        <div class="pane" id="pane-paste">
-          <div class="preset">
-            <label for="jsonPreset">Pre-tested card JSON <span class="precalc-tag">pre-calculated</span></label>
-            <select id="jsonPreset"><option value="">Pick one of <span id="jsonCount">…</span> real agent cards…</option></select>
-          </div>
-          <textarea id="pasteBox" placeholder='Or paste an Agent Card JSON here, e.g. {"name":"My Agent","url":"https://...","skills":[...]}'></textarea>
-          <div class="row"><button class="run" id="runPaste">Audit card (heuristic, live)</button></div>
-          <p class="hint">Picking a pre-tested card shows a result pre-computed on-device with the full DeBERTa classifier. Pasting your own runs the heuristic gate live in your browser. Nothing is uploaded.</p>
-        </div>
-        <div class="pane" id="pane-url">
-          <div class="preset">
-            <label for="urlPreset">Pre-tested agent URL <span class="precalc-tag">pre-calculated</span></label>
-            <select id="urlPreset"><option value="">Pick one of the pre-tested agent URLs…</option></select>
-          </div>
-          <input type="text" id="urlBox" placeholder="Or enter: example-agent.com  /  https://example-agent.com/.well-known/agent-card.json" />
-          <div class="row"><button class="run" id="runUrl">Fetch &amp; audit (heuristic, live)</button></div>
-          <p class="hint">Picking a pre-tested URL shows an on-device full-classifier result (no live fetch). Entering your own attempts a live browser fetch (often blocked by CORS); if it fails, use Paste or the CLI.</p>
-        </div>
-      </div>
-    </div>
-
-    <div id="result"></div>
 
     <section class="agg" id="fullstack">
       <h2 class="sec">How classification works</h2>
