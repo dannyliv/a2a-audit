@@ -1,36 +1,53 @@
 {
-  "n": 15,
-  "source": "a2aregistry.org live cards (anonymized, aggregate only)",
+  "n": 114,
+  "source": "a2aregistry.org + public A2A directories (point-in-time)",
   "captured": "2026-05-29",
-  "mean_score": 79.4,
+  "mean_score": 76.4,
   "grades": {
-    "A": 2,
-    "C": 13
+    "D": 6,
+    "C": 81,
+    "B": 7,
+    "F": 7,
+    "A": 13
   },
   "specs": {
-    "v0.3": 11,
-    "v1.0": 4
+    "unknown": 1,
+    "v0.3": 84,
+    "v1.0": 23,
+    "v0.2": 6
   },
   "top_findings": [
     [
       "Card is unsigned",
-      15
+      114
     ],
     [
       "No authentication declared",
-      13
-    ],
-    [
-      "Push notifications enabled with no declared auth",
-      1
-    ],
-    [
-      "3 skill(s) without tags",
-      1
+      88
     ],
     [
       "No provider information",
-      1
+      15
+    ],
+    [
+      "Push notifications enabled with no declared auth",
+      5
+    ],
+    [
+      "Push notifications enabled (verify webhook URL validation)",
+      4
+    ],
+    [
+      "Extended card advertised without authentication",
+      3
+    ],
+    [
+      "Extended card present (audit it separately)",
+      3
+    ],
+    [
+      "Security schemes defined but not required",
+      3
     ]
   ]
 }
