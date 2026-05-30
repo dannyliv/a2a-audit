@@ -322,6 +322,71 @@ fetch("data/examples.json").then((r) => r.json()).then((d) => {
   if (def) renderResult(audit(def.card), def.name);
 });
 
+/* ---- pre-tested dataset (results pre-computed on-device with full DeBERTa) ---- */
+function renderPrecomputed(rep, target) {
+  const issues = (rep.findings || []).filter((f) => !f.passed).sort((a, b) => (
+    { INFO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 }[b.severity] -
+    { INFO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 }[a.severity]));
+  const passed = (rep.findings || []).filter((f) => f.passed);
+  const gc = GRADE_COLOR[rep.grade] || "var(--ink)";
+  const asiShort = (f) => {
+    const p = (f.asi && f.asi.primary || "").split(":")[0];
+    const s = f.asi && f.asi.secondary ? "/" + (f.asi.secondary.split(":")[0]) : "";
+    return p + s;
+  };
+  let rows = issues.map((f) => `
+    <tr><td><span class="sev ${f.severity}">${f.severity}</span></td>
+      <td class="asi">${asiShort(f)}</td>
+      <td><div class="f-title">${esc(f.title)}</div>
+        ${f.evidence ? `<div class="f-ev">${esc(f.evidence)}</div>` : ""}
+        ${f.remediation ? `<div class="f-fix">→ ${esc(f.remediation)}</div>` : ""}
+        ${f.caveat ? `<div class="f-ev">⚠ ${esc(f.caveat)}</div>` : ""}
+      </td></tr>`).join("");
+  if (!issues.length) rows = `<tr><td colspan="3" style="color:var(--green);font-family:var(--mono)">No issues found.</td></tr>`;
+  const passNames = [...new Set(passed.map((f) => f.check_id))].join(", ");
+  $("#result").innerHTML = `
+    <div class="scorecard">
+      <div class="grade-dial" style="box-shadow: inset 0 0 60px -20px ${gc}">
+        <div class="g" style="color:${gc}">${rep.grade}</div><div class="s">${rep.score}/100</div>
+      </div>
+      <div class="sc-meta">
+        <h3>${esc(target)}</h3>
+        <div class="sub">spec ${rep.spec_version} · ${issues.length} issue${issues.length === 1 ? "" : "s"} · max severity ${rep.max_severity} · classifier ${esc(rep.classifier_mode || "deberta")}</div>
+        <div class="pills">
+          <span class="pill">ASI 2026 mapped</span>
+          ${passNames ? `<span class="pill pass">passed: ${esc(passNames)}</span>` : ""}
+        </div>
+        <div class="precalc-badge">⛁ Pre-calculated on-device with the full DeBERTa classifier (2026-05-29). Not run live.</div>
+      </div>
+    </div>
+    <table class="findings"><thead><tr><th>Severity</th><th>ASI</th><th>Finding</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="hint">This is a stored result from a real on-device audit. Public agent card, point-in-time snapshot, shown for demonstration (not an accusation). Re-run live anytime: <code>a2a-audit ${esc(target.startsWith("http") ? target : "&lt;url&gt;")} --backend deberta</code></p>`;
+  $("#result").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+let PRETESTED = [];
+fetch("data/pretested.json").then((r) => r.json()).then((d) => {
+  PRETESTED = d.entries || [];
+  const urlSel = $("#urlPreset"), jsonSel = $("#jsonPreset");
+  const jc = $("#jsonCount"); if (jc) jc.textContent = PRETESTED.length;
+  PRETESTED.forEach((e, i) => {
+    const g = e.report.grade;
+    const label = `[${g}] ${e.name || e.url}`.slice(0, 70);
+    if (urlSel) { const o = document.createElement("option"); o.value = String(i); o.textContent = `[${g}] ${(e.url || e.name).replace(/^https?:\/\//, "").slice(0, 60)}`; urlSel.appendChild(o); }
+    if (jsonSel) { const o = document.createElement("option"); o.value = String(i); o.textContent = label; jsonSel.appendChild(o); }
+  });
+  if (urlSel) urlSel.addEventListener("change", () => {
+    const e = PRETESTED[+urlSel.value]; if (!e) return;
+    $("#urlBox").value = e.url || "";
+    renderPrecomputed(e.report, e.url || e.name);
+  });
+  if (jsonSel) jsonSel.addEventListener("change", () => {
+    const e = PRETESTED[+jsonSel.value]; if (!e) return;
+    $("#pasteBox").value = JSON.stringify(e.card, null, 2);
+    renderPrecomputed(e.report, e.name || e.url);
+  });
+}).catch(() => { /* dataset optional */ });
+
 fetch("data/aggregate.json").then((r) => r.json()).then((a) => {
   const total = a.n;
   const order = ["A", "B", "C", "D", "F"];
