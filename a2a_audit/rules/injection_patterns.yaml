@@ -1,61 +1,92 @@
 # Heuristic pre-filter for skill-description intent (ASI01).
 #
-# These patterns are a CHEAP GATE, not a verdict. A hit marks a skill as a
-# candidate worth sending to the LLM intent classifier; the classifier makes
-# the malicious/benign call. Regex alone produced false positives on legitimate
-# skills like `login_and_scrape` and `whoami` during smoke testing, so a hit
-# here NEVER auto-fails a card when the classifier is available.
-#
-# When the classifier is unavailable (degraded mode), a hit is reported at LOW
-# severity as "potential injection, unverified" rather than HIGH.
+# Role in the two-stage classifier: this is a HIGH-RECALL GATE, not a verdict.
+# A match marks a skill as a candidate worth sending to the LLM intent
+# classifier; the classifier makes the final malicious/benign call and removes
+# false positives. Because a skill the gate misses never reaches the LLM, the
+# gate's recall caps the whole classifier's recall, so these patterns err toward
+# catching anything suspicious. Regex alone over-flags (e.g. a skill that merely
+# explains `curl`), which is acceptable here: the LLM clears those. In degraded
+# (heuristic-only) mode a match is reported as LOW + "unverified", never HIGH.
 
-version: 1
+version: 2
 
 # Case-insensitive regexes signalling possible instruction-hijack / injection /
-# exfiltration intent embedded in skill text.
+# exfiltration / privilege-abuse intent embedded in skill text.
 patterns:
   - id: ignore-prior
-    regex: "ignore\\s+(all\\s+|the\\s+)?(previous|prior|above|earlier)\\s+(instructions|prompts|messages)"
-    note: "classic instruction-override"
+    regex: "ignore\\s+(all\\s+|the\\s+)?(previous|prior|above|earlier|preceding)\\s+(instruction|prompt|message|guidance|guideline|context|question|rule)"
+    note: "instruction override"
   - id: disregard
-    regex: "disregard\\s+.{0,30}(instructions|rules|guidelines)"
-    note: "instruction-override"
+    regex: "disregard\\s+.{0,30}(instruction|rule|guideline|guidance|prompt|policy)"
+    note: "instruction override"
+  - id: forget
+    regex: "forget\\s+(everything|all|what|the|any|previous|prior)"
+    note: "instruction override (memory reset)"
+  - id: override-instruction
+    regex: "(override|overrides|supersede|supersedes|take[s]?\\s+priority\\s+over)\\s+.{0,40}(previous|prior|any|the|your|system)\\s*.{0,25}(instruction|prompt|policy|rule|guardrail)?"
+    note: "claims precedence over the system prompt / prior instructions"
+  - id: no-restrictions
+    regex: "(no\\s+(restriction|filter|guardrail|policy|rule|limit)|without\\s+any\\s+(restriction|policy|rule|filter|limit))"
+    note: "asserts unrestricted operation"
   - id: you-are-now
     regex: "you\\s+are\\s+now\\s+"
     note: "role reassignment"
+  - id: dev-mode
+    regex: "(developer|dev)\\s+mode|jailbreak|\\bDAN\\b"
+    note: "jailbreak persona"
   - id: act-as
-    regex: "\\bact\\s+as\\s+(an?\\s+)?(unrestricted|jailbro|dan|evil|admin|root)"
+    regex: "\\bact\\s+as\\s+(an?\\s+)?(unrestricted|jailbro|dan|evil|admin|root|malicious)"
     note: "role reassignment to privileged/unrestricted persona"
   - id: reveal-prompt
-    regex: "(reveal|print|repeat|disclose|leak)\\s+.{0,30}(system\\s+prompt|instructions|configuration|secrets?)"
+    regex: "(reveal|print|repeat|disclose|leak|expose|dump)\\s+.{0,40}(system\\s+prompt|developer\\s+instruction|instruction|configuration|secret|hidden)"
     note: "prompt/secret disclosure"
   - id: system-prompt-tag
-    regex: "</?(system|tool_call|tool|assistant|developer)>"
+    regex: "</?(system|tool_call|tool|assistant|developer|im_start|im_end)>"
     note: "fake role/control tags"
   - id: exfiltrate
     regex: "exfiltrat|\\bex-?filtrate"
     note: "explicit exfiltration"
-  - id: send-data-out
-    regex: "send\\s+.{0,40}(to\\s+)?(https?://|this\\s+(url|webhook|endpoint|address)|attacker)"
-    note: "data egress to external endpoint"
+  - id: data-egress
+    regex: "(send|transmit|upload|forward|post|push|attach|leak|smuggle)\\s+.{0,80}(api\\s*key|token|credential|password|secret|cookie|session|conversation|keystroke|/etc/|private\\s+key|personal\\s+data)"
+    note: "egress of sensitive data"
+  - id: egress-endpoint
+    regex: "(send|transmit|upload|forward|post|exfiltrate)\\s+.{0,80}(to\\s+)?(https?://|attacker|our\\s+server|remote\\s+host|external|collector|webhook)"
+    note: "egress to an external/attacker endpoint"
+  - id: credential-theft
+    regex: "(collect|harvest|steal|capture|phish|grab|obtain)\\s+.{0,40}(password|token|credential|cookie|secret|login|api\\s*key)"
+    note: "credential theft"
+  - id: session-cookie
+    regex: "session\\s+cookie|keystroke"
+    note: "session/keystroke capture"
   - id: encode-secret
-    regex: "base64\\s+.{0,30}(encode|key|token|secret|credential)"
+    regex: "base64[\\s\\-]*.{0,20}(encode|key|token|secret|credential|password)|base64[\\s\\-]*encode"
     note: "encoding/obfuscation of secrets"
   - id: shell
-    regex: "\\b(curl|wget|bash\\s+-c|/bin/sh|powershell)\\b"
+    regex: "\\b(curl|wget|bash\\s+-c|/bin/sh|powershell|rm\\s+-rf)\\b"
     note: "shell/command execution"
   - id: private-key
     regex: "BEGIN\\s+.{0,20}PRIVATE\\s+KEY"
     note: "embedded private key material"
-  - id: do-not-tell
-    regex: "do\\s+not\\s+(tell|inform|mention|notify|alert)\\s+(the\\s+)?(user|human|admin)"
+  - id: conceal
+    regex: "(do\\s+not|don'?t|never|without)\\s+(tell|inform|mention|notify|alert|reveal|disclose|letting)\\s+(the\\s+)?(user|human|admin|operator)?"
     note: "instructs concealment from the user"
+  - id: silently
+    regex: "\\b(silently|quietly|secretly|covertly)\\b"
+    note: "covert action qualifier"
+  - id: obey-injected
+    regex: "(obey|follow|comply\\s+with)\\s+(them|it|those|any|the)\\s*(instruction|command|direction)?|instruction[s]?\\s+for\\s+the\\s+(assistant|agent|ai|model)"
+    note: "indirect injection (obey instructions found in content)"
   - id: override-safety
-    regex: "(override|bypass|ignore)\\s+.{0,30}(safety|guardrail|filter|policy|restriction)"
+    regex: "(override|bypass|ignore|disable|turn\\s+off)\\s+.{0,30}(safety|guardrail|filter|policy|restriction|content\\s+filter)"
     note: "safety bypass"
+  - id: escalate
+    regex: "(escalate\\s+privilege|grant\\s+.{0,20}(access|admin|root)|persistent\\s+access)"
+    note: "privilege escalation / persistence"
 
 # Phrases that look pattern-adjacent but are legitimate skill names/verbs.
-# Used to lower confidence, not to hard-suppress.
+# Used to LOWER confidence in degraded mode, never to hard-suppress a candidate
+# (the LLM is responsible for clearing false positives).
 benign_hints:
   - "login_and_scrape"
   - "whoami"
@@ -63,7 +94,14 @@ benign_hints:
   - "authenticate"
   - "sign in"
   - "log in"
+  - "oauth"
+  - "refresh token"
   - "fetch url"
   - "send email"
-  - "send message"
+  - "send_email"
   - "send notification"
+  - "send_notification"
+  - "explains"
+  - "tutorial"
+  - "for beginners"
+  - "best practice"
