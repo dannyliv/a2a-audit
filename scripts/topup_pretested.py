@@ -56,7 +56,7 @@ for origin in cands:
                         "source": "directory", "card": fr.raw, "report": res.to_dict()})
         seen.add(fr.url)
         print("  added", fr.url, res.to_dict()["grade"])
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001, S112 - best-effort scraper, skip failures
         continue
 
 entries.sort(key=lambda e: (e["name"] or "").lower())
