@@ -1,0 +1,16 @@
+target,spec_version,score,grade,max_severity,num_findings,classifier_mode
+https://www.poolparty.io/.well-known/agent-card.json,v0.3,90,A,MEDIUM,1,heuristic
+https://insideout.luthersystems.com/.well-known/agent.json,v1.0,70,C,MEDIUM,3,heuristic
+https://pierre-ace-bunny-once.trycloudflare.com/.well-known/agent-card.json,v0.3,79,C,MEDIUM,2,heuristic
+https://silas.sylex.ai/.well-known/agent.json,v0.3,76,C,MEDIUM,3,heuristic
+https://swarmsync-agents.onrender.com/.well-known/agent.json,v0.3,79,C,MEDIUM,2,heuristic
+https://signals.gitdealflow.com/.well-known/agent-card.json,v0.3,79,C,MEDIUM,2,heuristic
+https://viseoncrawltest.uk/.well-known/agent-card.json,v0.3,79,C,MEDIUM,2,heuristic
+https://partsiq-api.onrender.com/.well-known/agent-card.json,v0.3,90,A,MEDIUM,1,heuristic
+https://hex-nest.com/.well-known/agent-card.json,v1.0,79,C,MEDIUM,2,heuristic
+https://hexnest-mvp-roomboard.onrender.com/.well-known/agent-card.json,v1.0,79,C,MEDIUM,2,heuristic
+https://perkoon.com/.well-known/agent-card.json,v0.3,79,C,MEDIUM,2,heuristic
+https://p0stman.com/.well-known/agent.json,v0.3,79,C,MEDIUM,2,heuristic
+https://news-agent.songt50.us/.well-known/agent.json,v0.3,79,C,MEDIUM,2,heuristic
+https://cesaryague.es/.well-known/agent.json,v1.0,79,C,MEDIUM,2,heuristic
+https://baconhollow.com/.well-known/agent-card.json,v0.3,75,C,MEDIUM,3,heuristic

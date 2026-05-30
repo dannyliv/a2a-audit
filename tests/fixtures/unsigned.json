@@ -1,0 +1,15 @@
+{
+  "protocolVersion": "0.3.0",
+  "name": "Unsigned Agent",
+  "description": "Strong auth but no signature.",
+  "url": "https://unsigned.example.com/a2a",
+  "preferredTransport": "JSONRPC",
+  "version": "1.0.0",
+  "provider": {"organization": "Example Corp", "url": "https://example.com"},
+  "capabilities": {},
+  "securitySchemes": {"bearer": {"type": "http", "scheme": "Bearer", "bearerFormat": "JWT"}},
+  "security": [{"bearer": []}],
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "skills": [{"id": "echo", "name": "Echo", "description": "Returns the input.", "tags": ["util"]}]
+}

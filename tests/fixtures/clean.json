@@ -1,0 +1,18 @@
+{
+  "protocolVersion": "0.3.0",
+  "name": "Clean Demo Agent",
+  "description": "A well-configured demo agent.",
+  "url": "https://clean.example.com/a2a",
+  "preferredTransport": "JSONRPC",
+  "version": "1.2.0",
+  "provider": {"organization": "Example Corp", "url": "https://example.com"},
+  "capabilities": {"streaming": true, "pushNotifications": false},
+  "securitySchemes": {"oidc": {"type": "openIdConnect", "openIdConnectUrl": "https://clean.example.com/.well-known/openid-configuration"}},
+  "security": [{"oidc": []}],
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "skills": [
+    {"id": "summarize", "name": "Summarize", "description": "Summarizes a document into key points.", "tags": ["text", "nlp"]}
+  ],
+  "signatures": [{"protected": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImsxIiwiamt1IjoiaHR0cHM6Ly9jbGVhbi5leGFtcGxlLmNvbS9qd2tzLmpzb24ifQ", "signature": "AAAA"}]
+}

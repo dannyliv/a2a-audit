@@ -1,0 +1,131 @@
+# Architecture
+
+`a2a-audit` is a small, layered pipeline. This document covers the design
+decisions, the threat model for the tool itself, and the v2 sketch. For the
+research that informed these choices (A2A object model, signing, competitive
+landscape, ASI mapping), see the project's `RESEARCH.md`.
+
+## Pipeline
+
+```
+target (URL | domain | stdin | registry)
+   |
+   v
+fetch.py        discover well-known paths, SSRF-guarded GET, JSON parse
+   |
+   v
+schema.py       lenient pydantic parse -> version detect -> NormalizedCard
+   |
+   v
+checks/*        auth, signature, transport, skills, exposure, webhook
+   |              (each returns Findings tagged with severity + ASI id)
+   v
+score.py        findings -> 0-100 composite + letter grade
+   |
+   v
+report.py       rich table | JSON | aggregate CSV
+```
+
+`audit.py` wires these together; `cli.py` is the typer entrypoint.
+
+## Key design decisions
+
+### 1. Model both card serializations, normalize to one shape
+
+There are two Agent Card models: the v0.2/v0.3 JSON shape (flat `url` +
+`preferredTransport` + `additionalInterfaces`, a `type` discriminator on
+security schemes, `supportsAuthenticatedExtendedCard` at the root) and the v1.0
+proto shape (a single `supportedInterfaces` array, the extended-card flag inside
+`capabilities`, renamed fields). Most live cards are v0.3.
+
+Rather than branch every check on version, `schema.py` parses a permissive
+union of both and normalizes into `NormalizedCard`. Checks never see version
+differences. `detect_spec_version()` records which shape was seen for the report.
+
+### 2. Parse leniently
+
+An auditor that rejects malformed cards audits nothing. Every model field is
+optional, unknown keys are allowed, and parse failures degrade to
+`model_construct` rather than raising. Garbage in produces findings, not a stack
+trace.
+
+### 3. Verify signatures, do not just detect them
+
+Per A2A spec section 8.4, a card signature is a detached JWS over the card
+canonicalized with RFC 8785 JCS, with the `signatures` field excluded. The
+`signature` check rebuilds that exact payload (`rfc8785.dumps` on the card minus
+`signatures`), resolves the verification key from the protected header's `jku`
+JWKS, and verifies with `jwcrypto`. A naive `json.dumps(sort_keys=True)` would
+silently produce wrong bytes and fail valid signatures, so a real JCS
+implementation is mandatory.
+
+Verification outcomes: verified (PASS), present-but-unverifiable (LOW, no usable
+key), or verification-failed (HIGH, likely tampered).
+
+### 4. The classifier is two-stage and injection-hardened
+
+Regex over skill descriptions over-flags: `login_and_scrape` and `whoami` look
+adjacent to attack patterns but are benign. So the heuristic YAML patterns are a
+**cheap gate** that decides which skills are even worth an LLM call, never a
+verdict. Only candidates reach the LLM intent classifier.
+
+The card is untrusted input to our own LLM call (a prompt-injection vector
+against the auditor itself). Defenses: skill text is wrapped in a delimited DATA
+block, the system prompt states the text is data and must never be followed as
+instructions, and the model must answer with strict JSON. The classifier can
+never crash an audit; on any error it falls back to a heuristic verdict.
+
+Modes: `llm` (gate + LLM), `heuristic` (gate only, results marked unverified and
+capped at LOW), `disabled`. Without `ANTHROPIC_API_KEY` the tool auto-degrades to
+`heuristic` and says so in the output.
+
+### 5. Composite scoring is the product's opinion
+
+Detection with severities already exists elsewhere. The differentiator is a
+single transparent grade. `score.py` keeps the weights in one place, overridable,
+so a team can encode its own risk appetite. Passing controls never penalize, so
+a well-built card can reach an A.
+
+### 6. The registry is an untrusted, stale index
+
+`a2aregistry.org` embeds card fields, but those are a periodically-refreshed
+snapshot plus registry-added health fields and can diverge from what the agent
+serves now. `registry.py` uses the embedded card only to discover
+`wellKnownURI`/`url`; the auditor re-fetches the canonical card before scoring
+(unless `--no-refetch`). Pagination is offset-based with serial pacing and
+exponential backoff, because the registry has no `page` param and 403s on
+aggressive enumeration.
+
+## Threat model for the tool itself
+
+`a2a-audit` ingests hostile input (arbitrary card JSON) and fetches
+attacker-influenced URLs. The two material risks:
+
+1. **SSRF via `fetch.py` / `registry.py` / `jku`.** We fetch user/registry-
+   supplied URLs and JWKS endpoints. Mitigations: scheme allowlist (http/https
+   only); DNS-resolve the host and reject private, loopback, link-local
+   (including `169.254.169.254` cloud metadata), reserved, and multicast
+   addresses; re-validate every redirect hop; cap response size; hard timeouts.
+   `jku` is treated as untrusted - JWKS fetches go through the same guard and
+   require HTTPS.
+
+2. **Prompt injection via card text into our LLM call.** Card skill text is
+   untrusted. Mitigation: the classifier wraps it in a delimited data block, the
+   system prompt forbids treating it as instructions, output is constrained to
+   JSON, and a parse/refusal failure degrades to a heuristic verdict rather than
+   trusting model free-text.
+
+See `SECURITY.md` for the reporting policy and the internal-audit findings log.
+
+## v2 sketch (out of scope for v1)
+
+The `rules/` YAML and the classifier prompt are intentionally append-only data,
+so a future scheduled **autoresearch** loop could monitor arXiv, CVE feeds, the
+OWASP ASI project, and registry diffs for new card-field abuses and propose new
+detection rules / prompt updates as pull requests, turning `a2a-audit` into a
+self-updating rule set. v1 ships hand-curated checks so the core stays tight and
+trustworthy; the data-driven design leaves that door open without a refactor.
+
+Other v2 candidates: consuming `a2a-tck` conformance signals as scoring inputs,
+a public posture leaderboard with diff tracking, and an opt-in active-probe mode
+against a locally-run target (never against registry agents).

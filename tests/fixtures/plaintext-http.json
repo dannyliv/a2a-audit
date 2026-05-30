@@ -1,0 +1,12 @@
+{
+  "protocolVersion": "0.3.0",
+  "name": "Plaintext Agent",
+  "description": "Serves over plaintext HTTP with no auth.",
+  "url": "http://insecure.example.com/a2a",
+  "preferredTransport": "JSONRPC",
+  "version": "0.1.0",
+  "capabilities": {},
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "skills": [{"id": "ping", "name": "Ping", "description": "Health check.", "tags": ["util"]}]
+}

@@ -1,0 +1,69 @@
+# Heuristic pre-filter for skill-description intent (ASI01).
+#
+# These patterns are a CHEAP GATE, not a verdict. A hit marks a skill as a
+# candidate worth sending to the LLM intent classifier; the classifier makes
+# the malicious/benign call. Regex alone produced false positives on legitimate
+# skills like `login_and_scrape` and `whoami` during smoke testing, so a hit
+# here NEVER auto-fails a card when the classifier is available.
+#
+# When the classifier is unavailable (degraded mode), a hit is reported at LOW
+# severity as "potential injection, unverified" rather than HIGH.
+
+version: 1
+
+# Case-insensitive regexes signalling possible instruction-hijack / injection /
+# exfiltration intent embedded in skill text.
+patterns:
+  - id: ignore-prior
+    regex: "ignore\\s+(all\\s+|the\\s+)?(previous|prior|above|earlier)\\s+(instructions|prompts|messages)"
+    note: "classic instruction-override"
+  - id: disregard
+    regex: "disregard\\s+.{0,30}(instructions|rules|guidelines)"
+    note: "instruction-override"
+  - id: you-are-now
+    regex: "you\\s+are\\s+now\\s+"
+    note: "role reassignment"
+  - id: act-as
+    regex: "\\bact\\s+as\\s+(an?\\s+)?(unrestricted|jailbro|dan|evil|admin|root)"
+    note: "role reassignment to privileged/unrestricted persona"
+  - id: reveal-prompt
+    regex: "(reveal|print|repeat|disclose|leak)\\s+.{0,30}(system\\s+prompt|instructions|configuration|secrets?)"
+    note: "prompt/secret disclosure"
+  - id: system-prompt-tag
+    regex: "</?(system|tool_call|tool|assistant|developer)>"
+    note: "fake role/control tags"
+  - id: exfiltrate
+    regex: "exfiltrat|\\bex-?filtrate"
+    note: "explicit exfiltration"
+  - id: send-data-out
+    regex: "send\\s+.{0,40}(to\\s+)?(https?://|this\\s+(url|webhook|endpoint|address)|attacker)"
+    note: "data egress to external endpoint"
+  - id: encode-secret
+    regex: "base64\\s+.{0,30}(encode|key|token|secret|credential)"
+    note: "encoding/obfuscation of secrets"
+  - id: shell
+    regex: "\\b(curl|wget|bash\\s+-c|/bin/sh|powershell)\\b"
+    note: "shell/command execution"
+  - id: private-key
+    regex: "BEGIN\\s+.{0,20}PRIVATE\\s+KEY"
+    note: "embedded private key material"
+  - id: do-not-tell
+    regex: "do\\s+not\\s+(tell|inform|mention|notify|alert)\\s+(the\\s+)?(user|human|admin)"
+    note: "instructs concealment from the user"
+  - id: override-safety
+    regex: "(override|bypass|ignore)\\s+.{0,30}(safety|guardrail|filter|policy|restriction)"
+    note: "safety bypass"
+
+# Phrases that look pattern-adjacent but are legitimate skill names/verbs.
+# Used to lower confidence, not to hard-suppress.
+benign_hints:
+  - "login_and_scrape"
+  - "whoami"
+  - "who am i"
+  - "authenticate"
+  - "sign in"
+  - "log in"
+  - "fetch url"
+  - "send email"
+  - "send message"
+  - "send notification"

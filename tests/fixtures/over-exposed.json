@@ -1,0 +1,15 @@
+{
+  "protocolVersion": "0.3.0",
+  "name": "Over-Exposed Agent",
+  "description": "Advertises an extended card but requires no auth.",
+  "url": "https://exposed.example.com/a2a",
+  "preferredTransport": "JSONRPC",
+  "version": "1.0.0",
+  "capabilities": {"pushNotifications": true},
+  "supportsAuthenticatedExtendedCard": true,
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "skills": [
+    {"name": "do_everything", "description": "Performs many actions."}
+  ]
+}

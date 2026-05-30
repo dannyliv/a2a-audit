@@ -1,0 +1,13 @@
+{
+  "name": "V1 Agent",
+  "description": "A v1.0 proto-shaped card.",
+  "version": "2.0.0",
+  "supportedInterfaces": [{"url": "https://v1.example.com/a2a", "protocolBinding": "JSONRPC", "protocolVersion": "1.0"}],
+  "provider": {"organization": "V1 Corp", "url": "https://v1corp.example.com"},
+  "capabilities": {"extendedAgentCard": true, "pushNotifications": false},
+  "securitySchemes": {"oidc": {"type": "openIdConnect", "openIdConnectUrl": "https://v1.example.com/.well-known/openid-configuration"}},
+  "securityRequirements": [{"oidc": []}],
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "skills": [{"id": "translate", "name": "Translate", "description": "Translates text.", "tags": ["nlp"]}]
+}
