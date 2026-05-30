@@ -5,6 +5,11 @@
  */
 "use strict";
 
+// Always open at the top of the page: stop the browser restoring a prior scroll
+// position on reload. The prefilled default result renders without scrolling
+// (renderResult(..., false) on load).
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+
 const ASI = {
   ASI01: "ASI01: Agent Goal Hijack",
   ASI02: "ASI02: Tool Misuse & Exploitation",
