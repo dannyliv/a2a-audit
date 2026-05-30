@@ -41,23 +41,23 @@
       <h2 class="sec">How a2a-audit works</h2>
 
       <div class="exec">
-        <p class="exec-lead">In plain terms: every AI agent publishes a small public profile, like a business card, that says where it lives, how to connect to it, and what it can do. a2a-audit reads that profile and grades how safely the agent is set up. You get one letter grade from A to F and the exact weaknesses behind it. Think of it as a credit score for an AI agent's security.</p>
+        <p class="exec-lead">In plain terms: every AI agent publishes a small public file called an Agent Card, like a business card, that says where it lives, how to connect to it, and what it can do. a2a-audit reads that card and grades how safely the agent is set up. You get one letter grade from A to F and the exact weaknesses behind it. Think of it as a credit score for an AI agent's security.</p>
         <div class="exec-grid">
           <div class="exec-card">
-            <h4>What it does</h4>
-            <p>It scores an agent's public profile against a recognized security checklist for AI agents (the OWASP Top 10 for Agentic Applications). It needs no access to the agent and sends it nothing. It only reads what the agent already publishes. The output is one grade plus a ranked list of issues, each with a plain-language fix.</p>
+            <h3>What it does</h3>
+            <p>It scores an agent's public Agent Card against a recognized security checklist for AI agents (the OWASP Top 10 for Agentic Applications). It needs no access to the agent and sends it nothing. It only reads what the agent already publishes. The output is one grade plus a ranked list of issues, each with a plain-language fix.</p>
           </div>
           <div class="exec-card">
-            <h4>When to use it</h4>
+            <h3>When to use it</h3>
             <p>Three moments. Before you connect your business to an outside agent, as vendor due diligence. Before you launch your own agent, as a pre-ship check. And on every release, as an automatic gate that blocks the launch when the security grade drops.</p>
           </div>
           <div class="exec-card">
-            <h4>Why it is needed</h4>
+            <h3>Why it is needed</h3>
             <p>AI agents now connect to each other on their own, with no human in the loop. In a scan of 114 live agents, every one lacked a tamper-proof signature and more than three quarters required no login. An outsider could impersonate an agent or hide instructions inside it. a2a-audit turns that hidden risk into one number a non-specialist can act on.</p>
           </div>
         </div>
         <div class="vs-note">
-          <p class="vs-lead"><strong>Valid is not the same as safe.</strong> Other A2A tools check whether an agent's profile is correctly formatted and works (conformance), or list individual issues. a2a-audit answers a different question: how safe is this agent to trust, as one grade you can compare across agents and enforce in your release pipeline.</p>
+          <p class="vs-lead"><strong>Valid is not the same as safe.</strong> Other A2A tools check whether an agent's card is correctly formatted and works (conformance), or list individual issues. a2a-audit answers a different question: how safe is this agent to trust, as one grade you can compare across agents and enforce in your release pipeline.</p>
           <table class="vs-table">
             <thead>
               <tr><th>Tool type</th><th>Question it answers</th><th>Examples</th></tr>
@@ -72,7 +72,7 @@
       </div>
 
       <div class="diagram-scroll">
-        <svg viewBox="0 0 980 380" role="img" aria-label="a2a-audit pipeline diagram" class="diagram">
+        <svg viewBox="0 0 980 380" role="img" aria-label="a2a-audit pipeline: Target, then SSRF-guarded Fetch, then Parse (v0.3 JSON or v1.0 proto), then six checks mapped to OWASP ASI 2026, then Score 0 to 100 and a letter grade, then Report. The skill-intent check adds a two-stage classifier: a heuristic gate then a model backend." class="diagram">
           <defs>
             <marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
               <path d="M0,0 L7,3 L0,6 Z" fill="#00e5a0"></path>
@@ -210,15 +210,15 @@
       <p class="lead">The skill-intent check (ASI01) is a two-stage pipeline. This demo runs stage 1 only. The CLI runs both, and the model stage is pluggable.</p>
       <div class="agg-grid">
         <div class="card">
-          <h4>Stage 1 — heuristic gate (this demo + CLI)</h4>
+          <h3>Stage 1 — heuristic gate (this demo + CLI)</h3>
           <p class="step">A high-recall regex pre-filter over each skill's text. It is tuned to catch anything suspicious, so it over-flags by design. A match means "candidate," not "verdict." On its own it reports findings as unverified.</p>
         </div>
         <div class="card">
-          <h4>Stage 2 — model verdict (CLI only)</h4>
+          <h3>Stage 2 — model verdict (CLI only)</h3>
           <p class="step">A backend confirms or clears each candidate and sets severity. A confirmed hit is HIGH; a gate hit the model does not confirm stays flagged at MEDIUM for review. The gate hit is never silently dropped (recall-favoring).</p>
         </div>
         <div class="card" style="grid-column:1/-1">
-          <h4>Backends (route with <span class="mono">--backend</span>)</h4>
+          <h3>Backends (route with <span class="mono">--backend</span>)</h3>
           <ul class="findfreq">
             <li><span><span class="mono">deberta</span> — local ProtectAI DeBERTa injection classifier (ONNX, CPU, deterministic). Default when installed.</span><span class="n">Apache-2.0</span></li>
             <li><span><span class="mono">gguf</span> — local Qwen2.5-7B via llama.cpp (Metal). Reasoning + JSON verdict.</span><span class="n">Apache-2.0</span></li>
@@ -236,16 +236,16 @@
       <p class="lead">An aggregate snapshot of <span id="agg-n">—</span> live agent cards from a public registry, audited with a2a-audit. Aggregate only: no individual agent is named or labeled vulnerable (responsible disclosure).</p>
       <div class="agg-grid">
         <div class="card">
-          <h4>Grade distribution</h4>
+          <h3>Grade distribution</h3>
           <div class="bars" id="agg-bars"></div>
         </div>
         <div class="card">
-          <h4>Mean posture score</h4>
+          <h3>Mean posture score</h3>
           <div class="statbig" id="agg-mean">—</div>
           <p class="disclosure" id="agg-specs"></p>
         </div>
         <div class="card" style="grid-column:1/-1">
-          <h4>Most common findings across the corpus</h4>
+          <h3>Most common findings across the corpus</h3>
           <ul class="findfreq" id="agg-freq"></ul>
           <p class="disclosure">Source: a2aregistry.org live cards, captured 2026-05-29, canonical re-fetch. Stats aggregate only.</p>
         </div>
