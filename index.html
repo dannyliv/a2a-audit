@@ -39,6 +39,34 @@
 
     <section class="diagram-wrap" id="how">
       <h2 class="sec">How a2a-audit works</h2>
+
+      <div class="exec">
+        <p class="exec-lead">In plain terms: every AI agent publishes a small public profile, like a business card, that says where it lives, how to connect to it, and what it can do. a2a-audit reads that profile and grades how safely the agent is set up. You get one letter grade from A to F and the exact weaknesses behind it. Think of it as a credit score for an AI agent's security.</p>
+        <div class="exec-grid">
+          <div class="exec-card">
+            <h4>What it does</h4>
+            <p>It scores an agent's public profile against a recognized security checklist for AI agents (the OWASP Top 10 for Agentic Applications). It needs no access to the agent and sends it nothing. It only reads what the agent already publishes. The output is one grade plus a ranked list of issues, each with a plain-language fix.</p>
+          </div>
+          <div class="exec-card">
+            <h4>When to use it</h4>
+            <p>Three moments. Before you connect your business to an outside agent, as vendor due diligence. Before you launch your own agent, as a pre-ship check. And on every release, as an automatic gate that blocks the launch when the security grade drops.</p>
+          </div>
+          <div class="exec-card">
+            <h4>Why it is needed</h4>
+            <p>AI agents now connect to each other on their own, with no human in the loop. In a scan of 114 live agents, every one lacked a tamper-proof signature and more than three quarters required no login. An outsider could impersonate an agent or hide instructions inside it. a2a-audit turns that hidden risk into one number a non-specialist can act on.</p>
+          </div>
+        </div>
+        <div class="vs-note">
+          <strong>Valid is not the same as safe.</strong> Other A2A tools check whether an agent's profile is correctly formatted and works (conformance), or list individual issues. a2a-audit answers a different question: how safe is this agent to trust, expressed as one grade you can compare across agents and enforce in your release pipeline.
+          <table class="vs-table">
+            <tr><th>Tool type</th><th>Question it answers</th><th>Examples</th></tr>
+            <tr><td>Conformance check</td><td>Is the card valid and does it work?</td><td>a2a-inspector, a2a-tck</td></tr>
+            <tr><td>Issue scanner</td><td>What individual problems exist?</td><td>Cisco a2a-scanner</td></tr>
+            <tr><td class="us">Posture auditor</td><td class="us">How safe is it to trust, as one grade?</td><td class="us">a2a-audit (this tool)</td></tr>
+          </table>
+        </div>
+      </div>
+
       <div class="diagram-scroll">
         <svg viewBox="0 0 980 380" role="img" aria-label="a2a-audit pipeline diagram" class="diagram">
           <defs>
