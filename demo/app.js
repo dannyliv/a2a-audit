@@ -269,6 +269,7 @@ function renderResult(res, target, scroll = true) {
   if (!issues.length) rows = `<tr><td colspan="3" style="color:var(--green);font-family:var(--mono)">No issues found.</td></tr>`;
   const passNames = [...new Set(passed.map((f) => f.check_id))].join(", ");
   $("#result").innerHTML = `
+    <div class="live-warning">⚠ The live demo audit uses heuristics only. To see classifier results, install locally with the classifiers, or select a card from the list above and click "Show pre-computed score".</div>
     <div class="scorecard">
       <div class="grade-dial" style="box-shadow: inset 0 0 60px -20px ${gc}">
         <div class="g" style="color:${gc}">${res.grade}</div>

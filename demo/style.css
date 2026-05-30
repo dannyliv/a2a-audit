@@ -219,3 +219,6 @@ footer a:hover { color: var(--green); }
 .exec-lead,.vs-lead,.lead,.diagram-caption,.hint{background:#000;border:1px solid var(--line);border-radius:12px;padding:14px 18px}
 .diagram-caption{display:block;text-align:center}
 footer .wrap{background:#000;border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+
+/* red banner above every live heuristic-only audit result */
+.live-warning{background:#000;border:1px solid var(--red);border-left:3px solid var(--red);border-radius:10px;color:var(--red);font-size:13px;line-height:1.5;padding:12px 16px;margin-bottom:16px;font-family:var(--mono)}
