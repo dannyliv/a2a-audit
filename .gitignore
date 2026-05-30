@@ -1,0 +1,35 @@
+# Launch content is NEVER committed (per GOAL hard constraint)
+content/
+*.docx
+
+# Secrets / env
+.env
+.env.*
+*.pem
+*.key
+secrets.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Audit output artifacts
+a2a-audit-report.json
+corpus.json
+*.audit.json
+
+# OS
+.DS_Store
+
+# Local-only operator companion files live one level up (project root), not in repo.

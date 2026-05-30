@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "a2a-audit"
+version = "0.1.0"
+description = "Security-posture auditor for A2A (Agent2Agent) Agent Cards, mapped to the OWASP Top 10 for Agentic Applications (ASI 2026)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "a2a-audit contributors" }]
+keywords = ["a2a", "agent2agent", "security", "audit", "owasp", "asi", "agentic", "agent-card"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Security",
+]
+dependencies = [
+  "httpx>=0.27",
+  "pydantic>=2.6",
+  "typer>=0.12",
+  "rich>=13.7",
+  "pyyaml>=6.0",
+  "cryptography>=42.0",
+]
+
+[project.optional-dependencies]
+# LLM-backed skill-description intent classifier. Without this (or its API key),
+# the classifier runs in degraded heuristic-only mode.
+llm = ["anthropic>=0.40"]
+dev = ["pytest>=8.0", "ruff>=0.6", "mypy>=1.10", "pip-audit>=2.7", "bandit>=1.7"]
+
+[project.scripts]
+a2a-audit = "a2a_audit.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/dannyliv/a2a-audit"
+Repository = "https://github.com/dannyliv/a2a-audit"
+
+[tool.hatch.build.targets.wheel]
+packages = ["a2a_audit"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+# E/F pycodestyle+pyflakes, I isort, B bugbear, S bandit-style security, UP pyupgrade
+select = ["E", "F", "I", "B", "S", "UP"]
+# allow asserts in tests
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+"redteam/**" = ["S101"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+markers = [
+  "network: tests that hit the live network (deselect with -m 'not network')",
+]
