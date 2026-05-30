@@ -33,3 +33,8 @@ corpus.json
 .DS_Store
 
 # Local-only operator companion files live one level up (project root), not in repo.
+
+# Local model weights (never committed)
+models/
+*.onnx
+*.gguf

@@ -167,8 +167,8 @@ function checkSkills(c) {
     if (hit) {
       flagged++;
       out.push(F({ check_id: "skills", title: `Suspicious skill description (unverified): ${s.id || s.name || "skill"}`, severity: "LOW", asi_primary: "ASI01",
-        message: "Heuristic patterns matched possible injection intent. Full LLM intent classification runs in the CLI.",
-        evidence: "matched injection heuristic", caveat: "Static demo: heuristic-only, expect some false positives." }));
+        message: "Heuristic gate matched possible injection intent. Model-backed verification (local DeBERTa or Qwen2.5) runs in the CLI.",
+        evidence: "matched injection heuristic", caveat: "Heuristic-only demo: expect some false positives; the CLI model stage confirms or clears these." }));
     }
   });
   if (!flagged && c.skills.length)
@@ -264,7 +264,7 @@ function renderResult(res, target) {
       </div>
     </div>
     <table class="findings"><thead><tr><th>Severity</th><th>ASI</th><th>Finding</th></tr></thead><tbody>${rows}</tbody></table>
-    <p class="hint">Static browser audit. The LLM skill-intent classifier and JWS signature verification run in the CLI: <code>a2a-audit ${esc(target.startsWith("http") ? target : "&lt;url&gt;")}</code></p>`;
+    <p class="hint">Heuristic-only browser audit. Model-backed classification and JWS signature verification run in the CLI: <code>a2a-audit ${esc(target.startsWith("http") ? target : "&lt;url&gt;")} --backend deberta</code></p>`;
   $("#result").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 

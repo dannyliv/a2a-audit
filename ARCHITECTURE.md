@@ -62,22 +62,38 @@ implementation is mandatory.
 Verification outcomes: verified (PASS), present-but-unverifiable (LOW, no usable
 key), or verification-failed (HIGH, likely tampered).
 
-### 4. The classifier is two-stage and injection-hardened
+### 4. The classifier is two-stage, pluggable, and injection-hardened
 
 Regex over skill descriptions over-flags: `login_and_scrape` and `whoami` look
 adjacent to attack patterns but are benign. So the heuristic YAML patterns are a
-**cheap gate** that decides which skills are even worth an LLM call, never a
-verdict. Only candidates reach the LLM intent classifier.
+**high-recall gate** that decides which skills reach the model stage, never a
+verdict. The model stage is a **pluggable backend** (`backends.py`):
 
-The card is untrusted input to our own LLM call (a prompt-injection vector
-against the auditor itself). Defenses: skill text is wrapped in a delimited DATA
-block, the system prompt states the text is data and must never be followed as
+- `deberta` — local ProtectAI DeBERTa injection classifier via onnxruntime.
+  Deterministic, CPU, no key. Default when installed.
+- `gguf` — local Qwen2.5-7B via llama-cpp-python (Metal). Reasoning + JSON.
+- `openai` — any OpenAI-compatible server (Ollama, llama-server, vLLM, OpenRouter).
+- `claude` — Anthropic API.
+- `heuristic` / `disabled` — gate only / off.
+
+Routing (`build_backend`): explicit `--backend` > `A2A_AUDIT_BACKEND` env >
+auto-detect (local-first: deberta → gguf → openai → claude → heuristic). Model
+weights live in `models/` and are never committed.
+
+**Union, never veto.** A heuristic gate hit is never downgraded to fully benign
+by the model. The model refines severity: a confirmed hit is HIGH, a gate hit the
+model does not confirm stays flagged at MEDIUM for review. This is deliberate.
+Measured on the seed corpus, DeBERTa alone (as a strict filter) drops recall to
+0.73 because it was trained on classic "ignore instructions" injection and misses
+exfiltration / shell-exec / phishing / indirect-injection framing. A security
+auditor should not miss a real attack to avoid a benign flag, so the gate sets
+the floor on recall and the model adds precision on top.
+
+The card is untrusted input to any model call (a prompt-injection vector against
+the auditor itself). Defenses: skill text is wrapped in a delimited DATA block,
+the system prompt states the text is data and must never be followed as
 instructions, and the model must answer with strict JSON. The classifier can
-never crash an audit; on any error it falls back to a heuristic verdict.
-
-Modes: `llm` (gate + LLM), `heuristic` (gate only, results marked unverified and
-capped at LOW), `disabled`. Without `ANTHROPIC_API_KEY` the tool auto-degrades to
-`heuristic` and says so in the output.
+never crash an audit; on any backend error it falls back to a heuristic verdict.
 
 ### 5. Composite scoring is the product's opinion
 

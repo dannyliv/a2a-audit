@@ -88,7 +88,12 @@ def evaluate(mode: str, corpus_path: Path) -> tuple[Metrics, str, list[dict]]:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", default="auto", choices=["auto", "llm", "heuristic", "disabled"])
+    ap.add_argument(
+        "--mode",
+        default="auto",
+        choices=["auto", "heuristic", "disabled", "deberta", "gguf", "openai", "claude", "llm"],
+        help="backend selector passed to SkillClassifier",
+    )
     ap.add_argument("--corpus", default=str(DEFAULT_CORPUS))
     ap.add_argument("--out", default=None, help="write JSON metrics to this path")
     args = ap.parse_args()

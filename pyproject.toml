@@ -30,9 +30,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# LLM-backed skill-description intent classifier. Without this (or its API key),
-# the classifier runs in degraded heuristic-only mode.
-llm = ["anthropic>=0.40"]
+# Skill-intent classifier backends (the auditor runs degraded heuristic-only
+# without any of these). Pick the backend that fits your trust/cost model:
+deberta = ["onnxruntime>=1.17", "tokenizers>=0.15", "numpy>=1.24"]  # local, default
+gguf = ["llama-cpp-python>=0.2.80"]                                  # local Qwen2.5 etc.
+llm = ["anthropic>=0.40"]                                           # Claude (cloud)
+local = ["onnxruntime>=1.17", "tokenizers>=0.15", "numpy>=1.24", "llama-cpp-python>=0.2.80"]
 dev = ["pytest>=8.0", "ruff>=0.6", "mypy>=1.10", "pip-audit>=2.7", "bandit>=1.7"]
 
 [project.scripts]

@@ -26,7 +26,7 @@ META = CheckMeta(
 
 def run(card: NormalizedCard, ctx: CheckContext) -> list[Finding]:
     classifier = ctx.classifier
-    if classifier is None or classifier.mode == "disabled":
+    if classifier is None or classifier.disabled:
         return [
             Finding(
                 check_id=META.check_id,
@@ -39,7 +39,7 @@ def run(card: NormalizedCard, ctx: CheckContext) -> list[Finding]:
 
     findings: list[Finding] = []
     flagged = 0
-    degraded = classifier.mode == "heuristic"
+    degraded = classifier.is_degraded
 
     for skill in card.skills:
         text = skill_text(skill.name, skill.description, skill.examples)
@@ -66,18 +66,34 @@ def run(card: NormalizedCard, ctx: CheckContext) -> list[Finding]:
                     caveat="Degraded mode: heuristic-only, expect false positives.",
                 )
             )
-        else:
-            sev = Severity.HIGH if verdict.confidence >= 0.6 else Severity.MEDIUM
+        elif verdict.backend_agreed:
             findings.append(
                 Finding(
                     check_id=META.check_id,
                     title=f"Likely prompt-injection in skill: {label}",
-                    severity=sev,
+                    severity=Severity.HIGH,
                     asi_primary=Asi.ASI01,
                     asi_secondary=Asi.ASI06,
-                    message="The skill description appears to contain an instruction-hijack / injection payload.",
+                    message=f"The {classifier.mode} classifier confirmed an instruction-hijack / injection payload.",
                     evidence=f"{verdict.reason} (confidence {verdict.confidence:.2f})",
                     remediation="Treat this agent as hostile until the skill text is reviewed and cleaned.",
+                )
+            )
+        else:
+            # Gate matched but the model did not confirm: still flag for review,
+            # at a lower severity (union, never veto).
+            findings.append(
+                Finding(
+                    check_id=META.check_id,
+                    title=f"Heuristic-flagged skill, model unconfirmed: {label}",
+                    severity=Severity.MEDIUM,
+                    asi_primary=Asi.ASI01,
+                    message=(
+                        f"Heuristic patterns matched possible injection intent but the "
+                        f"{classifier.mode} classifier did not confirm it. Review manually."
+                    ),
+                    evidence=f"{verdict.reason} (confidence {verdict.confidence:.2f})",
+                    remediation="Review the skill description; confirm whether the intent is malicious.",
                 )
             )
 

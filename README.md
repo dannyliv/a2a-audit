@@ -24,13 +24,12 @@ Every check is static and offline except the skill-description intent check, whi
 ## Install
 
 ```bash
-uv pip install -e ".[llm]"     # llm extra enables the skill-intent classifier
-# or
-pip install -e ".[llm]"
+uv pip install -e .                # core: all static checks + heuristic gate
+uv pip install -e ".[deberta]"     # + local DeBERTa injection classifier (recommended)
 a2a-audit --version
 ```
 
-The skill-intent classifier needs `ANTHROPIC_API_KEY` in the environment. Without it (or without the `llm` extra) the classifier runs in **degraded heuristic mode**, which is clearly marked in the output.
+With no model backend installed, the skill-intent check runs in **degraded heuristic mode** (clearly marked in the output). Installing a backend turns on model-verified classification. See [Skill classifier backends](#skill-classifier-backends).
 
 ## Usage
 
@@ -78,6 +77,54 @@ Key flags:
 Passed controls: skills, transport
 ```
 
+## Skill classifier backends
+
+The skill-intent check (ASI01) is a two-stage pipeline:
+
+1. **Heuristic gate** (always on): a high-recall regex pre-filter selects candidate skills. It is tuned to over-flag, so a match is a candidate, not a verdict.
+2. **Model backend** (pluggable): confirms or clears each candidate and sets severity. A confirmed hit is HIGH; a gate hit the model does not confirm stays flagged at MEDIUM for review. A gate hit is never silently dropped, which keeps recall high (the right bias for a security auditor).
+
+Pick a backend with `--backend` (or the `A2A_AUDIT_BACKEND` env var):
+
+| Backend | What it is | License | Install |
+|---|---|---|---|
+| `heuristic` | Gate only, no model (degraded, marked unverified) | n/a | core |
+| `deberta` | Local [ProtectAI DeBERTa](https://huggingface.co/protectai/deberta-v3-base-prompt-injection-v2) injection classifier (ONNX, CPU, deterministic). Default when installed. | Apache-2.0 | `.[deberta]` + model download |
+| `gguf` | Local [Qwen2.5-7B](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct) via llama.cpp (Metal). Reasoning + JSON verdict. | Apache-2.0 | `.[gguf]` + GGUF download |
+| `openai` | Any OpenAI-compatible server: Ollama, llama-server, vLLM, OpenRouter | varies | core (`httpx`) |
+| `claude` | Anthropic API | cloud | `.[llm]` + `ANTHROPIC_API_KEY` |
+| `auto` | First available, local-first: deberta → gguf → openai → claude → heuristic | | default |
+
+### Install the local models
+
+```bash
+# DeBERTa (recommended default: fast, deterministic, ~700MB ONNX)
+uv pip install -e ".[deberta]"
+hf download protectai/deberta-v3-base-prompt-injection-v2 --include "onnx/*" \
+  --local-dir models/deberta-injection
+a2a-audit https://example-agent.com --backend deberta
+
+# Qwen2.5-7B (local reasoning model, ~4.4GB GGUF)
+uv pip install -e ".[gguf]"
+hf download bartowski/Qwen2.5-7B-Instruct-GGUF Qwen2.5-7B-Instruct-Q4_K_M.gguf \
+  --local-dir models && mv models/Qwen2.5-7B-Instruct-Q4_K_M.gguf models/qwen2.5-7b-instruct-q4_k_m.gguf
+a2a-audit https://example-agent.com --backend gguf
+```
+
+### Route to any model
+
+The `openai` backend speaks the OpenAI chat API, so any compatible server drops in:
+
+```bash
+# Ollama
+ollama serve & ollama pull qwen2.5:7b
+a2a-audit <url> --backend openai --backend-url http://localhost:11434/v1 --backend-model qwen2.5:7b
+
+# vLLM / llama-server / OpenRouter: same shape, different --backend-url
+```
+
+Routing config resolves from `--backend*` flags, then `A2A_AUDIT_*` env vars (`A2A_AUDIT_BACKEND`, `A2A_AUDIT_DEBERTA_PATH`, `A2A_AUDIT_GGUF_PATH`, `A2A_AUDIT_OPENAI_BASE_URL`, `A2A_AUDIT_OPENAI_MODEL`), then auto-detect. Model weights live in `models/` and are never committed.
+
 ## Checks and ASI mapping
 
 Each check maps to a primary [OWASP ASI 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) category (and a secondary where relevant).
@@ -102,7 +149,7 @@ Score starts at 100. Each non-passing finding subtracts `severity_weight x check
 - **`schema.py`** parses both card serializations leniently (an auditor must ingest malformed input, not reject it) and normalizes them into one `NormalizedCard` the checks consume.
 - **`fetch.py`** is the SSRF boundary: it DNS-resolves hosts and blocks private/reserved targets, re-validates every redirect hop, and caps response size.
 - **`checks/`** holds one module per check, each exporting `META` and `run(card, ctx)`.
-- **`classifier.py`** gates skills through a cheap heuristic YAML pre-filter, then sends only candidates to an injection-hardened LLM prompt. The card is untrusted input to our own model call, so its text is wrapped in a delimited data block and never treated as instructions.
+- **`classifier.py`** gates skills through a cheap heuristic YAML pre-filter, then routes candidates to a pluggable backend (`backends.py`: DeBERTa, GGUF/Qwen, any OpenAI-compatible server, or Claude). The card is untrusted input to any model call, so its text is wrapped in a delimited data block and never treated as instructions. A gate hit is never vetoed to benign; the model refines severity.
 - **`score.py`** turns findings into the composite grade.
 - **`registry.py`** enumerates real cards with offset pagination and backoff, treating embedded card fields as a stale index (it always re-fetches the canonical card).
 

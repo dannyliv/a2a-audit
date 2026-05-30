@@ -745,7 +745,7 @@
     "spec_version": "v0.3",
     "parse_ok": true,
     "classifier_mode": "heuristic",
-    "score": 79,
+    "score": 75,
     "grade": "C",
     "max_severity": "MEDIUM",
     "errors": [],
@@ -785,13 +785,16 @@
       },
       {
         "check_id": "skills",
-        "title": "No injection patterns in skill descriptions",
-        "severity": "INFO",
-        "passed": true,
+        "title": "Suspicious skill description (unverified): send-files",
+        "severity": "LOW",
+        "passed": false,
         "asi": {
           "primary": "ASI01: Agent Goal Hijack"
         },
-        "message": "Screened 4 skill(s); none flagged (heuristic mode)."
+        "message": "Heuristic patterns matched possible injection intent. The LLM classifier was unavailable, so this is UNVERIFIED.",
+        "remediation": "Review the skill description manually; run the CLI with the LLM classifier enabled.",
+        "evidence": "matched patterns (unverified): data-egress",
+        "caveat": "Degraded mode: heuristic-only, expect false positives."
       },
       {
         "check_id": "exposure",
@@ -1107,6 +1110,388 @@
           "primary": "ASI01: Agent Goal Hijack"
         },
         "message": "Screened 4 skill(s); none flagged (heuristic mode)."
+      },
+      {
+        "check_id": "exposure",
+        "title": "No over-exposure indicators",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI03: Agent Identity & Privilege Abuse"
+        },
+        "message": "No extended-card exposure gap; skills carry ids and tags."
+      },
+      {
+        "check_id": "webhook",
+        "title": "Push notifications not enabled",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI07: Insecure Inter-Agent Communication"
+        },
+        "message": "No pushNotifications capability; no client-webhook SSRF surface advertised."
+      }
+    ]
+  },
+  {
+    "target": "https://publicdata-agent.songt50.us/.well-known/agent.json",
+    "fetched_path": "/.well-known/agent.json",
+    "spec_version": "v0.3",
+    "parse_ok": true,
+    "classifier_mode": "heuristic",
+    "score": 79,
+    "grade": "C",
+    "max_severity": "MEDIUM",
+    "errors": [],
+    "findings": [
+      {
+        "check_id": "auth",
+        "title": "No authentication declared",
+        "severity": "MEDIUM",
+        "passed": false,
+        "asi": {
+          "primary": "ASI03: Agent Identity & Privilege Abuse"
+        },
+        "message": "The card declares no securitySchemes and no security requirements. Callers can reach the agent without credentials.",
+        "remediation": "If the agent is not an intentional public demo, declare a securityScheme and a matching security requirement.",
+        "caveat": "Public demo agents may leave auth undeclared intentionally."
+      },
+      {
+        "check_id": "signature",
+        "title": "Card is unsigned",
+        "severity": "MEDIUM",
+        "passed": false,
+        "asi": {
+          "primary": "ASI04: Agentic Supply Chain Compromise"
+        },
+        "message": "No `signatures` present. The card's authenticity and integrity cannot be cryptographically verified; it can be silently tampered.",
+        "remediation": "Sign the card with a detached JWS (RFC 7515 + RFC 8785 JCS) per spec \u00a78.4."
+      },
+      {
+        "check_id": "transport",
+        "title": "All endpoints use HTTPS",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI04: Agentic Supply Chain Compromise"
+        },
+        "message": "Declared endpoints use HTTPS."
+      },
+      {
+        "check_id": "skills",
+        "title": "No injection patterns in skill descriptions",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI01: Agent Goal Hijack"
+        },
+        "message": "Screened 5 skill(s); none flagged (heuristic mode)."
+      },
+      {
+        "check_id": "exposure",
+        "title": "No over-exposure indicators",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI03: Agent Identity & Privilege Abuse"
+        },
+        "message": "No extended-card exposure gap; skills carry ids and tags."
+      },
+      {
+        "check_id": "webhook",
+        "title": "Push notifications not enabled",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI07: Insecure Inter-Agent Communication"
+        },
+        "message": "No pushNotifications capability; no client-webhook SSRF surface advertised."
+      }
+    ]
+  },
+  {
+    "target": "https://pyrimid.ai/.well-known/agent.json",
+    "fetched_path": "/.well-known/agent.json",
+    "spec_version": "v0.3",
+    "parse_ok": true,
+    "classifier_mode": "heuristic",
+    "score": 75,
+    "grade": "C",
+    "max_severity": "MEDIUM",
+    "errors": [],
+    "findings": [
+      {
+        "check_id": "auth",
+        "title": "No authentication declared",
+        "severity": "MEDIUM",
+        "passed": false,
+        "asi": {
+          "primary": "ASI03: Agent Identity & Privilege Abuse"
+        },
+        "message": "The card declares no securitySchemes and no security requirements. Callers can reach the agent without credentials.",
+        "remediation": "If the agent is not an intentional public demo, declare a securityScheme and a matching security requirement.",
+        "caveat": "Public demo agents may leave auth undeclared intentionally."
+      },
+      {
+        "check_id": "signature",
+        "title": "Card is unsigned",
+        "severity": "MEDIUM",
+        "passed": false,
+        "asi": {
+          "primary": "ASI04: Agentic Supply Chain Compromise"
+        },
+        "message": "No `signatures` present. The card's authenticity and integrity cannot be cryptographically verified; it can be silently tampered.",
+        "remediation": "Sign the card with a detached JWS (RFC 7515 + RFC 8785 JCS) per spec \u00a78.4."
+      },
+      {
+        "check_id": "transport",
+        "title": "No provider information",
+        "severity": "LOW",
+        "passed": false,
+        "asi": {
+          "primary": "ASI04: Agentic Supply Chain Compromise"
+        },
+        "message": "The card declares no provider, reducing accountability/attribution.",
+        "remediation": "Add a provider with organization and url."
+      },
+      {
+        "check_id": "transport",
+        "title": "All endpoints use HTTPS",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI04: Agentic Supply Chain Compromise"
+        },
+        "message": "Declared endpoints use HTTPS."
+      },
+      {
+        "check_id": "webhook",
+        "title": "Push notifications not enabled",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI07: Insecure Inter-Agent Communication"
+        },
+        "message": "No pushNotifications capability; no client-webhook SSRF surface advertised."
+      }
+    ]
+  },
+  {
+    "target": "https://agent-svg-registry.vercel.app/.well-known/agent-card.json",
+    "fetched_path": "/.well-known/agent-card.json",
+    "spec_version": "v0.3",
+    "parse_ok": true,
+    "classifier_mode": "heuristic",
+    "score": 79,
+    "grade": "C",
+    "max_severity": "MEDIUM",
+    "errors": [],
+    "findings": [
+      {
+        "check_id": "auth",
+        "title": "No authentication declared",
+        "severity": "MEDIUM",
+        "passed": false,
+        "asi": {
+          "primary": "ASI03: Agent Identity & Privilege Abuse"
+        },
+        "message": "The card declares no securitySchemes and no security requirements. Callers can reach the agent without credentials.",
+        "remediation": "If the agent is not an intentional public demo, declare a securityScheme and a matching security requirement.",
+        "caveat": "Public demo agents may leave auth undeclared intentionally."
+      },
+      {
+        "check_id": "signature",
+        "title": "Card is unsigned",
+        "severity": "MEDIUM",
+        "passed": false,
+        "asi": {
+          "primary": "ASI04: Agentic Supply Chain Compromise"
+        },
+        "message": "No `signatures` present. The card's authenticity and integrity cannot be cryptographically verified; it can be silently tampered.",
+        "remediation": "Sign the card with a detached JWS (RFC 7515 + RFC 8785 JCS) per spec \u00a78.4."
+      },
+      {
+        "check_id": "transport",
+        "title": "All endpoints use HTTPS",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI04: Agentic Supply Chain Compromise"
+        },
+        "message": "Declared endpoints use HTTPS."
+      },
+      {
+        "check_id": "skills",
+        "title": "No injection patterns in skill descriptions",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI01: Agent Goal Hijack"
+        },
+        "message": "Screened 6 skill(s); none flagged (heuristic mode)."
+      },
+      {
+        "check_id": "exposure",
+        "title": "No over-exposure indicators",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI03: Agent Identity & Privilege Abuse"
+        },
+        "message": "No extended-card exposure gap; skills carry ids and tags."
+      },
+      {
+        "check_id": "webhook",
+        "title": "Push notifications not enabled",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI07: Insecure Inter-Agent Communication"
+        },
+        "message": "No pushNotifications capability; no client-webhook SSRF surface advertised."
+      }
+    ]
+  },
+  {
+    "target": "https://blocklottos.com/.well-known/agent.json",
+    "fetched_path": "/.well-known/agent.json",
+    "spec_version": "v0.3",
+    "parse_ok": true,
+    "classifier_mode": "heuristic",
+    "score": 79,
+    "grade": "C",
+    "max_severity": "MEDIUM",
+    "errors": [],
+    "findings": [
+      {
+        "check_id": "auth",
+        "title": "No authentication declared",
+        "severity": "MEDIUM",
+        "passed": false,
+        "asi": {
+          "primary": "ASI03: Agent Identity & Privilege Abuse"
+        },
+        "message": "The card declares no securitySchemes and no security requirements. Callers can reach the agent without credentials.",
+        "remediation": "If the agent is not an intentional public demo, declare a securityScheme and a matching security requirement.",
+        "caveat": "Public demo agents may leave auth undeclared intentionally."
+      },
+      {
+        "check_id": "signature",
+        "title": "Card is unsigned",
+        "severity": "MEDIUM",
+        "passed": false,
+        "asi": {
+          "primary": "ASI04: Agentic Supply Chain Compromise"
+        },
+        "message": "No `signatures` present. The card's authenticity and integrity cannot be cryptographically verified; it can be silently tampered.",
+        "remediation": "Sign the card with a detached JWS (RFC 7515 + RFC 8785 JCS) per spec \u00a78.4."
+      },
+      {
+        "check_id": "transport",
+        "title": "All endpoints use HTTPS",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI04: Agentic Supply Chain Compromise"
+        },
+        "message": "Declared endpoints use HTTPS."
+      },
+      {
+        "check_id": "skills",
+        "title": "No injection patterns in skill descriptions",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI01: Agent Goal Hijack"
+        },
+        "message": "Screened 4 skill(s); none flagged (heuristic mode)."
+      },
+      {
+        "check_id": "exposure",
+        "title": "No over-exposure indicators",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI03: Agent Identity & Privilege Abuse"
+        },
+        "message": "No extended-card exposure gap; skills carry ids and tags."
+      },
+      {
+        "check_id": "webhook",
+        "title": "Push notifications not enabled",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI07: Insecure Inter-Agent Communication"
+        },
+        "message": "No pushNotifications capability; no client-webhook SSRF surface advertised."
+      }
+    ]
+  },
+  {
+    "target": "https://api.trustboost.dev/.well-known/agent-card.json",
+    "fetched_path": "/.well-known/agent-card.json",
+    "spec_version": "v0.3",
+    "parse_ok": true,
+    "classifier_mode": "heuristic",
+    "score": 75,
+    "grade": "C",
+    "max_severity": "MEDIUM",
+    "errors": [],
+    "findings": [
+      {
+        "check_id": "auth",
+        "title": "No authentication declared",
+        "severity": "MEDIUM",
+        "passed": false,
+        "asi": {
+          "primary": "ASI03: Agent Identity & Privilege Abuse"
+        },
+        "message": "The card declares no securitySchemes and no security requirements. Callers can reach the agent without credentials.",
+        "remediation": "If the agent is not an intentional public demo, declare a securityScheme and a matching security requirement.",
+        "caveat": "Public demo agents may leave auth undeclared intentionally."
+      },
+      {
+        "check_id": "signature",
+        "title": "Card is unsigned",
+        "severity": "MEDIUM",
+        "passed": false,
+        "asi": {
+          "primary": "ASI04: Agentic Supply Chain Compromise"
+        },
+        "message": "No `signatures` present. The card's authenticity and integrity cannot be cryptographically verified; it can be silently tampered.",
+        "remediation": "Sign the card with a detached JWS (RFC 7515 + RFC 8785 JCS) per spec \u00a78.4."
+      },
+      {
+        "check_id": "transport",
+        "title": "No provider information",
+        "severity": "LOW",
+        "passed": false,
+        "asi": {
+          "primary": "ASI04: Agentic Supply Chain Compromise"
+        },
+        "message": "The card declares no provider, reducing accountability/attribution.",
+        "remediation": "Add a provider with organization and url."
+      },
+      {
+        "check_id": "transport",
+        "title": "All endpoints use HTTPS",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI04: Agentic Supply Chain Compromise"
+        },
+        "message": "Declared endpoints use HTTPS."
+      },
+      {
+        "check_id": "skills",
+        "title": "No injection patterns in skill descriptions",
+        "severity": "INFO",
+        "passed": true,
+        "asi": {
+          "primary": "ASI01: Agent Goal Hijack"
+        },
+        "message": "Screened 3 skill(s); none flagged (heuristic mode)."
       },
       {
         "check_id": "exposure",

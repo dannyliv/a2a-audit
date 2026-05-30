@@ -11,6 +11,7 @@ from rich.console import Console
 
 from a2a_audit import __version__
 from a2a_audit.audit import audit_raw, audit_target
+from a2a_audit.backends import BackendConfig
 from a2a_audit.classifier import SkillClassifier
 from a2a_audit.fetch import FetchError, fetch_card
 from a2a_audit.finding import AuditResult, Severity
@@ -30,8 +31,18 @@ def _version_cb(value: bool) -> None:
         raise typer.Exit()
 
 
-def _build_classifier(mode: str) -> SkillClassifier:
-    return SkillClassifier(mode=mode)
+def _build_classifier(
+    backend: str, backend_url: str | None, backend_model: str | None
+) -> SkillClassifier:
+    cfg = BackendConfig.from_env(override=backend)
+    if backend_url:
+        cfg.openai_base_url = backend_url
+    if backend_model:
+        cfg.openai_model = backend_model
+        cfg.claude_model = backend_model
+        if backend == "gguf":
+            cfg.gguf_path = backend_model  # treat as a path override for gguf
+    return SkillClassifier(mode=backend, config=cfg)
 
 
 def _exit_code(results: list[AuditResult], fail_on: Severity) -> int:
@@ -52,8 +63,19 @@ def main(
     limit: int = typer.Option(20, "--limit", help="Number of registry cards to audit."),
     json_out: bool = typer.Option(False, "--json", help="Emit machine JSON to stdout."),
     fail_on: str = typer.Option("HIGH", "--fail-on", help="Min severity for non-zero exit (INFO..CRITICAL)."),
-    classifier_mode: str = typer.Option(
-        "auto", "--classifier", help="Skill classifier: auto|llm|heuristic|disabled."
+    backend: str = typer.Option(
+        "auto",
+        "--backend",
+        help="Skill classifier backend: auto|heuristic|deberta|gguf|openai|claude|disabled.",
+    ),
+    backend_url: str | None = typer.Option(
+        None, "--backend-url", help="OpenAI-compatible base URL (e.g. http://localhost:11434/v1)."
+    ),
+    backend_model: str | None = typer.Option(
+        None, "--backend-model", help="Model name (openai/claude) or GGUF path (gguf)."
+    ),
+    classifier_mode: str | None = typer.Option(
+        None, "--classifier", hidden=True, help="Deprecated alias for --backend."
     ),
     no_verify_sigs: bool = typer.Option(False, "--no-verify-sigs", help="Skip signature verification."),
     no_refetch: bool = typer.Option(
@@ -72,7 +94,8 @@ def main(
 
     # stdout stays pure JSON when --json; human output goes to stderr.
     out_console = Console(stderr=True) if json_out else Console()
-    classifier = _build_classifier(classifier_mode)
+    selected_backend = classifier_mode or backend  # --classifier is a deprecated alias
+    classifier = _build_classifier(selected_backend, backend_url, backend_model)
     verify_sigs = not no_verify_sigs
 
     if registry:

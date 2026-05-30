@@ -9,8 +9,13 @@ https://viseoncrawltest.uk/.well-known/agent-card.json,v0.3,79,C,MEDIUM,2,heuris
 https://partsiq-api.onrender.com/.well-known/agent-card.json,v0.3,90,A,MEDIUM,1,heuristic
 https://hex-nest.com/.well-known/agent-card.json,v1.0,79,C,MEDIUM,2,heuristic
 https://hexnest-mvp-roomboard.onrender.com/.well-known/agent-card.json,v1.0,79,C,MEDIUM,2,heuristic
-https://perkoon.com/.well-known/agent-card.json,v0.3,79,C,MEDIUM,2,heuristic
+https://perkoon.com/.well-known/agent-card.json,v0.3,75,C,MEDIUM,3,heuristic
 https://p0stman.com/.well-known/agent.json,v0.3,79,C,MEDIUM,2,heuristic
 https://news-agent.songt50.us/.well-known/agent.json,v0.3,79,C,MEDIUM,2,heuristic
 https://cesaryague.es/.well-known/agent.json,v1.0,79,C,MEDIUM,2,heuristic
 https://baconhollow.com/.well-known/agent-card.json,v0.3,75,C,MEDIUM,3,heuristic
+https://publicdata-agent.songt50.us/.well-known/agent.json,v0.3,79,C,MEDIUM,2,heuristic
+https://pyrimid.ai/.well-known/agent.json,v0.3,75,C,MEDIUM,3,heuristic
+https://agent-svg-registry.vercel.app/.well-known/agent-card.json,v0.3,79,C,MEDIUM,2,heuristic
+https://blocklottos.com/.well-known/agent.json,v0.3,79,C,MEDIUM,2,heuristic
+https://api.trustboost.dev/.well-known/agent-card.json,v0.3,75,C,MEDIUM,3,heuristic
