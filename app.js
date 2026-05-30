@@ -439,21 +439,21 @@ fetch("data/pretested.json").then((r) => r.json()).then((d) => {
   // "Show pre-computed score" button. The stored full-classifier result is
   // shown only when that button is clicked; the live audit stays separate.
   if (urlSel) urlSel.addEventListener("change", () => {
-    const e = PRETESTED[+urlSel.value];
+    const e = (urlSel.value === "" ? null : PRETESTED[+urlSel.value]);
     if (e) $("#urlBox").value = e.url || "";
     if (showUrlBtn) showUrlBtn.disabled = !e;
   });
   if (showUrlBtn) showUrlBtn.addEventListener("click", () => {
-    const e = PRETESTED[+urlSel.value]; if (!e) return;
+    const e = (urlSel.value === "" ? null : PRETESTED[+urlSel.value]); if (!e) return;
     renderPrecomputed(e.report, e.url || e.name);
   });
   if (jsonSel) jsonSel.addEventListener("change", () => {
-    const e = PRETESTED[+jsonSel.value];
+    const e = (jsonSel.value === "" ? null : PRETESTED[+jsonSel.value]);
     if (e) $("#pasteBox").value = JSON.stringify(e.card, null, 2);
     if (showJsonBtn) showJsonBtn.disabled = !e;
   });
   if (showJsonBtn) showJsonBtn.addEventListener("click", () => {
-    const e = PRETESTED[+jsonSel.value]; if (!e) return;
+    const e = (jsonSel.value === "" ? null : PRETESTED[+jsonSel.value]); if (!e) return;
     renderPrecomputed(e.report, e.name || e.url);
   });
 }).catch(() => { /* dataset optional */ });
