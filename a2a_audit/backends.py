@@ -51,6 +51,18 @@ class BackendVerdict:
     reason: str
 
 
+def _build_llm_messages(text: str) -> list[dict[str, str]]:
+    """Chat messages for any LLM backend (gguf / openai / claude minus system).
+
+    The card text is untrusted, so it is wrapped in a delimited DATA block; the
+    system prompt (_LLM_SYSTEM) instructs the model to treat it as data only.
+    """
+    return [
+        {"role": "system", "content": _LLM_SYSTEM},
+        {"role": "user", "content": f"Classify this skill. DATA:\n<<<A2A\n{text}\nA2A"},
+    ]
+
+
 class Backend(Protocol):
     name: str
     gate_first: bool
@@ -105,26 +117,22 @@ class DebertaBackend:
 
     def classify(self, text: str) -> BackendVerdict:
         self._load()
-        enc = self._tok.encode(text)
-        ids = enc.ids
-        mask = enc.attention_mask
-        feed: dict[str, object] = {}
-        if "input_ids" in self._input_names:
-            feed["input_ids"] = [ids]
-        if "attention_mask" in self._input_names:
-            feed["attention_mask"] = [mask]
-        if "token_type_ids" in self._input_names:
-            feed["token_type_ids"] = [[0] * len(ids)]
         import numpy as np
 
-        feed = {k: np.array(v, dtype=np.int64) for k, v in feed.items()}
-        logits = self._session.run(None, feed)[0][0]
-        # softmax
-        m = max(logits)
-        exps = [pow(2.718281828, float(x - m)) for x in logits]
-        s = sum(exps)
-        probs = [e / s for e in exps]
-        p_inj = probs[self._injection_idx]
+        enc = self._tok.encode(text)
+        feed_lists: dict[str, list[list[int]]] = {}
+        if "input_ids" in self._input_names:
+            feed_lists["input_ids"] = [enc.ids]
+        if "attention_mask" in self._input_names:
+            feed_lists["attention_mask"] = [enc.attention_mask]
+        if "token_type_ids" in self._input_names:
+            feed_lists["token_type_ids"] = [[0] * len(enc.ids)]
+        feed = {k: np.array(v, dtype=np.int64) for k, v in feed_lists.items()}
+        logits = np.asarray(self._session.run(None, feed)[0][0], dtype=np.float64)
+        # numerically stable softmax
+        exps = np.exp(logits - logits.max())
+        probs = exps / exps.sum()
+        p_inj = float(probs[self._injection_idx])
         return BackendVerdict(
             malicious=p_inj >= self.threshold,
             confidence=float(p_inj if p_inj >= self.threshold else 1 - p_inj),
@@ -170,10 +178,7 @@ class LlamaCppBackend:
     def classify(self, text: str) -> BackendVerdict:
         self._load()
         out = self._llm.create_chat_completion(
-            messages=[
-                {"role": "system", "content": _LLM_SYSTEM},
-                {"role": "user", "content": f"Classify this skill. DATA:\n<<<A2A\n{text}\nA2A"},
-            ],
+            messages=_build_llm_messages(text),
             max_tokens=200,
             temperature=0.0,
             response_format={"type": "json_object"},
@@ -208,10 +213,7 @@ class OpenAIBackend:
                 "model": self.model,
                 "temperature": 0.0,
                 "max_tokens": 200,
-                "messages": [
-                    {"role": "system", "content": _LLM_SYSTEM},
-                    {"role": "user", "content": f"Classify this skill. DATA:\n<<<A2A\n{text}\nA2A"},
-                ],
+                "messages": _build_llm_messages(text),
             },
             timeout=self.timeout,
         )
@@ -282,6 +284,10 @@ class BackendConfig:
     openai_model: str | None = None
     openai_api_key: str | None = None
     claude_model: str = "claude-haiku-4-5-20251001"
+    # Generic per-backend model identifier from `--backend-model`. The CLI sets
+    # this once; build_backend interprets it for the selected backend (a GGUF
+    # path for gguf, a model name for openai/claude). Keeps the CLI backend-agnostic.
+    model: str | None = None
     extra: dict[str, str] = field(default_factory=dict)
 
     @classmethod
@@ -308,16 +314,17 @@ def build_backend(cfg: BackendConfig) -> Backend | None:
         return b if b.available() else None
 
     def gguf() -> Backend | None:
-        b = LlamaCppBackend(cfg.gguf_path or DEFAULT_GGUF_PATH)
+        b = LlamaCppBackend(cfg.gguf_path or cfg.model or DEFAULT_GGUF_PATH)
         return b if b.available() else None
 
     def openai() -> Backend | None:
-        if not cfg.openai_base_url or not cfg.openai_model:
+        model = cfg.openai_model or cfg.model
+        if not cfg.openai_base_url or not model:
             return None
-        return OpenAIBackend(cfg.openai_base_url, cfg.openai_model, cfg.openai_api_key or "not-needed")
+        return OpenAIBackend(cfg.openai_base_url, model, cfg.openai_api_key or "not-needed")
 
     def claude() -> Backend | None:
-        b = ClaudeBackend(cfg.claude_model)
+        b = ClaudeBackend(cfg.model or cfg.claude_model)
         return b if b.available() else None
 
     builders = {"deberta": deberta, "gguf": gguf, "openai": openai, "claude": claude}

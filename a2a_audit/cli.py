@@ -38,10 +38,7 @@ def _build_classifier(
     if backend_url:
         cfg.openai_base_url = backend_url
     if backend_model:
-        cfg.openai_model = backend_model
-        cfg.claude_model = backend_model
-        if backend == "gguf":
-            cfg.gguf_path = backend_model  # treat as a path override for gguf
+        cfg.model = backend_model  # build_backend interprets per selected backend
     classifier = SkillClassifier(mode=backend, config=cfg)
     if classifier.is_degraded:
         import sys

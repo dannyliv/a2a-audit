@@ -24,6 +24,22 @@ const ASI = {
 };
 const SEV_W = { INFO: 0, LOW: 3, MEDIUM: 8, HIGH: 18, CRITICAL: 30 };
 const CHK_W = { auth: 1.4, signature: 1.2, transport: 1.3, skills: 1.5, exposure: 1.0, webhook: 1.1 };
+const SEV_RANK = { INFO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 };
+const sevDesc = (a, b) => SEV_RANK[b.severity] - SEV_RANK[a.severity];
+// hasAuth mirrors NormalizedCard.has_auth in the Python schema.
+const hasAuth = (c) => Object.keys(c.security_schemes).length > 0 || c.security_requirements.length > 0;
+// Render the ASI tag from either finding shape: live findings carry asi_primary
+// strings; precomputed (from the Python to_dict) carry asi: {primary, secondary}.
+function formatAsi(f) {
+  if (f.asi && (f.asi.primary || f.asi.secondary)) {
+    const p = (f.asi.primary || "").split(":")[0];
+    const s = f.asi.secondary ? "/" + f.asi.secondary.split(":")[0] : "";
+    return p + s;
+  }
+  const p = f.asi_primary || "";
+  const s = f.asi_secondary ? "/" + f.asi_secondary.split(":")[0] : "";
+  return p + s;
+}
 
 const INJECTION = [
   /ignore\s+(all\s+|the\s+)?(previous|prior|above|earlier)\s+(instruction|prompt|message|guidance|guideline|context|question|rule)/i,
@@ -183,9 +199,9 @@ function checkSkills(c) {
 
 function checkExposure(c) {
   const out = [];
-  const hasAuth = Object.keys(c.security_schemes).length > 0 || c.security_requirements.length > 0;
+  const authed = hasAuth(c);
   if (c.supports_extended_card) {
-    if (!hasAuth) out.push(F({ check_id: "exposure", title: "Extended card advertised without authentication", severity: "MEDIUM", asi_primary: "ASI03",
+    if (!authed) out.push(F({ check_id: "exposure", title: "Extended card advertised without authentication", severity: "MEDIUM", asi_primary: "ASI03",
       message: "Advertises an authenticated extended card but declares no auth.", remediation: "Require a securityScheme before serving the extended card." }));
     else out.push(F({ check_id: "exposure", title: "Extended card present (audit it separately)", severity: "INFO", asi_primary: "ASI03", message: "Audit the authenticated extended card endpoint separately." }));
   }
@@ -201,9 +217,9 @@ function checkExposure(c) {
 function checkWebhook(c) {
   const push = !!c.capabilities.pushNotifications;
   if (!push) return [F({ check_id: "webhook", title: "Push notifications not enabled", severity: "INFO", asi_primary: "ASI07", message: "No client-webhook SSRF surface advertised.", passed: true })];
-  const hasAuth = Object.keys(c.security_schemes).length > 0 || c.security_requirements.length > 0;
+  const authed = hasAuth(c);
   const cav = "OWASP ASI07 emphasizes inter-agent spoofing/AitM; SSRF is partial here (ASI05 secondary).";
-  if (!hasAuth) return [F({ check_id: "webhook", title: "Push notifications enabled with no declared auth", severity: "MEDIUM", asi_primary: "ASI07", asi_secondary: "ASI05",
+  if (!authed) return [F({ check_id: "webhook", title: "Push notifications enabled with no declared auth", severity: "MEDIUM", asi_primary: "ASI07", asi_secondary: "ASI05",
     message: "Accepts push-notification webhooks but declares no auth; an unvalidated webhook-config endpoint is an SSRF pivot.",
     remediation: "Require auth to register webhooks; validate/allowlist URLs; block private IP ranges.", caveat: cav })];
   return [F({ check_id: "webhook", title: "Push notifications enabled (verify webhook URL validation)", severity: "LOW", asi_primary: "ASI07",
@@ -227,8 +243,7 @@ function audit(raw) {
   findings.forEach((f) => { if (!f.passed) penalty += (SEV_W[f.severity] || 0) * (CHK_W[f.check_id] || 1); });
   const score = Math.max(0, Math.min(100, bankersRound(100 - penalty)));
   const grade = score >= 90 ? "A" : score >= 80 ? "B" : score >= 70 ? "C" : score >= 60 ? "D" : "F";
-  const sevRank = { INFO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 };
-  const max = findings.filter((f) => !f.passed).reduce((m, f) => (sevRank[f.severity] > sevRank[m] ? f.severity : m), "INFO");
+  const max = findings.filter((f) => !f.passed).reduce((m, f) => (SEV_RANK[f.severity] > SEV_RANK[m] ? f.severity : m), "INFO");
   return { spec_version: c.spec_version, score, grade, max_severity: max, findings, name: c.name };
 }
 
@@ -238,13 +253,13 @@ const esc = (s) => String(s).replace(/[&<>]/g, (m) => ({ "&": "&amp;", "<": "&lt
 const GRADE_COLOR = { A: "var(--grade-a)", B: "var(--grade-b)", C: "var(--grade-c)", D: "var(--grade-d)", F: "var(--grade-f)" };
 
 function renderResult(res, target, scroll = true) {
-  const issues = res.findings.filter((f) => !f.passed).sort((a, b) => ({ INFO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 }[b.severity] - { INFO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 }[a.severity]));
+  const issues = res.findings.filter((f) => !f.passed).sort(sevDesc);
   const passed = res.findings.filter((f) => f.passed);
   const gc = GRADE_COLOR[res.grade];
   let rows = issues.map((f) => `
     <tr>
       <td><span class="sev ${f.severity}">${f.severity}</span></td>
-      <td class="asi">${f.asi_primary}${f.asi_secondary ? "/" + f.asi_secondary.split(":")[0] : ""}</td>
+      <td class="asi">${formatAsi(f)}</td>
       <td><div class="f-title">${esc(f.title)}</div>
         ${f.evidence ? `<div class="f-ev">${esc(f.evidence)}</div>` : ""}
         ${f.remediation ? `<div class="f-fix">→ ${esc(f.remediation)}</div>` : ""}
@@ -330,19 +345,12 @@ fetch("data/examples.json").then((r) => r.json()).then((d) => {
 
 /* ---- pre-tested dataset (results pre-computed on-device with full DeBERTa) ---- */
 function renderPrecomputed(rep, target) {
-  const issues = (rep.findings || []).filter((f) => !f.passed).sort((a, b) => (
-    { INFO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 }[b.severity] -
-    { INFO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 }[a.severity]));
+  const issues = (rep.findings || []).filter((f) => !f.passed).sort(sevDesc);
   const passed = (rep.findings || []).filter((f) => f.passed);
   const gc = GRADE_COLOR[rep.grade] || "var(--ink)";
-  const asiShort = (f) => {
-    const p = (f.asi && f.asi.primary || "").split(":")[0];
-    const s = f.asi && f.asi.secondary ? "/" + (f.asi.secondary.split(":")[0]) : "";
-    return p + s;
-  };
   let rows = issues.map((f) => `
     <tr><td><span class="sev ${f.severity}">${f.severity}</span></td>
-      <td class="asi">${asiShort(f)}</td>
+      <td class="asi">${formatAsi(f)}</td>
       <td><div class="f-title">${esc(f.title)}</div>
         ${f.evidence ? `<div class="f-ev">${esc(f.evidence)}</div>` : ""}
         ${f.remediation ? `<div class="f-fix">→ ${esc(f.remediation)}</div>` : ""}

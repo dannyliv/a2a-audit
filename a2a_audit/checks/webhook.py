@@ -46,7 +46,7 @@ def run(card: NormalizedCard, ctx: CheckContext) -> list[Finding]:
             )
         ]
 
-    has_auth = bool(card.security_schemes or card.security_requirements)
+    has_auth = card.has_auth
     if not has_auth:
         return [
             Finding(

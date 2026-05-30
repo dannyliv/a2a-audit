@@ -126,6 +126,18 @@ single transparent grade. `score.py` keeps the weights in one place, overridable
 so a team can encode its own risk appetite. Passing controls never penalize, so
 a well-built card can reach an A.
 
+### Note: the browser demo mirrors the Python engine
+
+`demo/app.js` re-implements the static checks and the scoring weights in
+JavaScript so the GitHub Pages demo runs with no backend. This is a deliberate
+parallel implementation, not shared code. The two must stay in sync: when a
+static check, an ASI mapping, or a scoring weight changes in `a2a_audit/`, make
+the matching change in `demo/app.js`. Score parity against the Python CLI is
+verified on the bundled example cards (the demo and CLI produce identical
+grade/score for each). The model-backed skill stage and JWS verification run
+only in the CLI; the browser uses the heuristic gate and presence-only signature
+detection.
+
 ### 6. The registry is an untrusted, stale index
 
 `a2aregistry.org` embeds card fields, but those are a periodically-refreshed

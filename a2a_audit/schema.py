@@ -149,6 +149,11 @@ class NormalizedCard:
     raw: dict[str, Any] = field(default_factory=dict)
     model: AgentCard | None = None
 
+    @property
+    def has_auth(self) -> bool:
+        """True if the card declares any security scheme or requirement."""
+        return bool(self.security_schemes or self.security_requirements)
+
 
 def detect_spec_version(raw: dict[str, Any]) -> str:
     """Heuristic version detection from a raw card dict."""

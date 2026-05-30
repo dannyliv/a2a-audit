@@ -40,8 +40,14 @@ def _canonical_payload(raw: dict[str, Any]) -> bytes:
     return rfc8785.dumps(unsigned)
 
 
-def _verify_one(sig: dict[str, Any], payload: bytes, ctx: CheckContext) -> tuple[bool, str]:
-    """Return (verified, detail)."""
+def _verify_one(
+    sig: dict[str, Any],
+    payload: bytes,
+    ctx: CheckContext,
+    jwks_cache: dict[str, Any],
+) -> tuple[bool, str]:
+    """Return (verified, detail). ``jwks_cache`` memoizes JWKS by jku URL so a
+    card with several signatures from the same issuer fetches each JWKS once."""
     from jwcrypto import jwk, jws
 
     protected_b64 = sig.get("protected")
@@ -58,16 +64,20 @@ def _verify_one(sig: dict[str, Any], payload: bytes, ctx: CheckContext) -> tuple
     if not jku:
         return False, "no jku in protected header; cannot retrieve verification key"
 
-    # Fetch JWKS through the SSRF-guarded fetcher.
+    # Fetch JWKS through the SSRF-guarded fetcher, memoized by jku.
     try:
-        import httpx
+        if jku in jwks_cache:
+            jwks_data = jwks_cache[jku]
+        else:
+            import httpx
 
-        from a2a_audit.fetch import assert_safe_url
+            from a2a_audit.fetch import assert_safe_url
 
-        assert_safe_url(jku, allow_http=False)
-        resp = httpx.get(jku, timeout=10.0, follow_redirects=False)
-        resp.raise_for_status()
-        jwks_data = resp.json()
+            assert_safe_url(jku, allow_http=False)
+            resp = httpx.get(jku, timeout=10.0, follow_redirects=False)
+            resp.raise_for_status()
+            jwks_data = resp.json()
+            jwks_cache[jku] = jwks_data
     except Exception as exc:  # noqa: BLE001
         return False, f"jku JWKS fetch failed ({jku}): {exc}"
 
@@ -118,7 +128,8 @@ def run(card: NormalizedCard, ctx: CheckContext) -> list[Finding]:
         ]
 
     payload = _canonical_payload(card.raw)
-    results = [_verify_one(s, payload, ctx) for s in sigs if isinstance(s, dict)]
+    jwks_cache: dict[str, Any] = {}
+    results = [_verify_one(s, payload, ctx, jwks_cache) for s in sigs if isinstance(s, dict)]
     verified = [d for ok, d in results if ok]
     failed = [d for ok, d in results if not ok]
 
