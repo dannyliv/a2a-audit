@@ -10,9 +10,17 @@ Security-posture auditor for [A2A (Agent2Agent)](https://a2a-protocol.org/) Agen
 
 An A2A Agent Card is the agent's public contract: where it lives, how to authenticate, what it can do, who vouches for it. It is also attacker-reachable by definition. Most cards in the wild declare no auth, are unsigned, and a few are served over plaintext HTTP.
 
-The tooling around cards splits into lanes. `a2a-inspector` and `a2a-tck` check **conformance**. Cisco's `a2a-scanner` does **per-finding detection** with severities. Neither produces a single, opinionated, comparable **posture grade**. That is the lane `a2a-audit` occupies: one transparent 0-100 score and letter grade per card, diffable over time, gate-able in CI.
+### What it does vs other A2A tools
 
-This is a posture auditor, not a conformance checker. It interoperates with the conformance tools rather than duplicating them.
+**Valid is not the same as safe.** A card can be perfectly well-formed, pass every conformance test, and still require no authentication, carry no signature, and expose a webhook an attacker can abuse. Those are different questions, answered by different tools:
+
+| Tool type | Question it answers | Examples | Output |
+|---|---|---|---|
+| **Conformance / validation** | Is the card valid, complete, and does the agent work? | [`a2a-inspector`](https://github.com/a2aproject/a2a-inspector), [`a2a-tck`](https://github.com/a2aproject/a2a-tck) | pass/fail against the spec |
+| **Issue scanner** | What individual problems does this card have? | [Cisco `a2a-scanner`](https://github.com/cisco-ai-defense/a2a-scanner) | a list of findings with severities |
+| **Posture auditor (this tool)** | How safe is this agent to trust, as one grade? | **`a2a-audit`** | one 0-100 score + A-F grade, diffable, CI-gate-able |
+
+`a2a-audit` is a **security-posture auditor, not a conformance checker**. Conformance tools tell you the card is valid; `a2a-audit` tells you whether it is safe to trust, as a single comparable grade you can track over time and enforce in a release pipeline. It interoperates with the conformance tools rather than duplicating them, and unlike a plain issue scanner it rolls the findings into one opinionated, transparent grade.
 
 ## How it works
 

@@ -5,6 +5,27 @@ decisions, the threat model for the tool itself, and the v2 sketch. For the
 research that informed these choices (A2A object model, signing, competitive
 landscape, ASI mapping), see the project's `RESEARCH.md`.
 
+## Scope: posture, not conformance
+
+`a2a-audit` answers one question: how safe is this agent to trust, as a single
+graded score. That is deliberately different from the neighbouring tools, and the
+whole design follows from it:
+
+- **Conformance / validation** (`a2a-inspector`, `a2a-tck`) answers "is the card
+  valid and does the agent work?" with pass/fail against the spec.
+- **Issue scanners** (Cisco `a2a-scanner`) answer "what individual problems
+  exist?" with a list of findings and severities.
+- **Posture auditing** (this tool) answers "how safe is it to trust?" by rolling
+  spec-native security checks into one transparent 0-100 score and A-F grade that
+  is comparable across agents, diffable over time, and enforceable in CI.
+
+"Valid is not safe" is the load-bearing idea: a card can pass conformance and
+still declare no auth, carry no signature, and expose an SSRF-able webhook. So
+`a2a-audit` does NOT re-implement conformance or generic issue detection; it adds
+the scoring/grading layer on top and can consume conformance signals later
+(see v2). This is why, for example, checks never reject a malformed card (a
+conformance concern) but instead score what they find.
+
 ## Pipeline
 
 ```
