@@ -196,6 +196,7 @@ h2.sec { font-family: var(--mono); font-size: 13px; letter-spacing: 2px; text-tr
 footer { border-top: 1px solid var(--line-bright); padding: 30px 0 60px; margin-top: 60px; color: var(--ink-faint); font-family: var(--mono); font-size: 12px; }
 footer a { color: var(--steel); }
 footer a:hover { color: var(--green); }
+.disclaimer-note { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: 11px; line-height: 1.5; max-width: 90ch; }
 
 @media (max-width: 720px) {
   .agg-grid { grid-template-columns: 1fr; }
