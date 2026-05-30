@@ -1,4 +1,4 @@
-/* a2a-audit — client-side static audit engine.
+/* a2a-audit - client-side static audit engine.
  * Mirrors the Python static checks. The LLM skill-intent classifier and
  * cryptographic signature verification run only in the CLI; in the browser the
  * skills check uses the heuristic gate and the signature check is presence-only.

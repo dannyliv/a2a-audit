@@ -90,12 +90,12 @@ adjacent to attack patterns but are benign. So the heuristic YAML patterns are a
 **high-recall gate** that decides which skills reach the model stage, never a
 verdict. The model stage is a **pluggable backend** (`backends.py`):
 
-- `deberta` — local ProtectAI DeBERTa injection classifier via onnxruntime.
+- `deberta`: local ProtectAI DeBERTa injection classifier via onnxruntime.
   Deterministic, CPU, no key. Default when installed.
-- `gguf` — local Qwen2.5-7B via llama-cpp-python (Metal). Reasoning + JSON.
-- `openai` — any OpenAI-compatible server (Ollama, llama-server, vLLM, OpenRouter).
-- `claude` — Anthropic API.
-- `heuristic` / `disabled` — gate only / off.
+- `gguf`: local Qwen2.5-7B via llama-cpp-python (Metal). Reasoning + JSON.
+- `openai`: any OpenAI-compatible server (Ollama, llama-server, vLLM, OpenRouter).
+- `claude`: Anthropic API.
+- `heuristic` / `disabled`: gate only / off.
 
 Routing (`build_backend`): explicit `--backend` > `A2A_AUDIT_BACKEND` env >
 auto-detect (local-first: deberta → gguf → openai → claude → heuristic). Model

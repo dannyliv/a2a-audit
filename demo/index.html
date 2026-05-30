@@ -137,7 +137,7 @@
             <!-- classifier sub-pipeline -->
             <g>
               <rect x="40" y="220" width="900" height="120" rx="10" fill="#0c1314" stroke="#2c3e42"></rect>
-              <text x="60" y="244" fill="#46d1ff" font-size="11" font-weight="700">Skill-intent check (ASI01) — two stages</text>
+              <text x="60" y="244" fill="#46d1ff" font-size="11" font-weight="700">Skill-intent check (ASI01): two stages</text>
 
               <rect x="60" y="258" width="190" height="58" rx="8" fill="#0b1112" stroke="#2c3e42"></rect>
               <text x="155" y="282" fill="#e8f0ee" font-size="12" font-weight="700" text-anchor="middle">1. Heuristic gate</text>
@@ -167,7 +167,7 @@
     <div class="console" id="try">
       <div class="console-top">
         <div class="dots"><i></i><i></i><i></i></div>
-        <span class="path">~/a2a-audit — interactive</span>
+        <span class="path">~/a2a-audit: interactive</span>
       </div>
       <div class="demo-banner">
         <strong>Heuristic gate only.</strong> This browser demo runs the fast regex pre-filter and the static checks. It does not run the model stage. The CLI adds model-backed skill classification: a local <span class="mono">DeBERTa</span> injection classifier, a local <span class="mono">Qwen2.5-7B</span>, any OpenAI-compatible server, or Claude. <a href="#fullstack">How the full pipeline works.</a>
@@ -180,7 +180,7 @@
       <div class="panel-body">
         <div class="pane active" id="pane-examples">
           <div class="examples" id="examples"></div>
-          <p class="hint">Synthetic example cards (clean, unsigned, plaintext, injected skill, over-exposed, v1.0) — click to audit instantly.</p>
+          <p class="hint">Synthetic example cards (clean, unsigned, plaintext, injected skill, over-exposed, v1.0): click to audit instantly.</p>
         </div>
         <div class="pane" id="pane-paste">
           <div class="preset">
@@ -210,21 +210,21 @@
       <p class="lead">The skill-intent check (ASI01) is a two-stage pipeline. This demo runs stage 1 only. The CLI runs both, and the model stage is pluggable.</p>
       <div class="agg-grid">
         <div class="card">
-          <h3>Stage 1 — heuristic gate (this demo + CLI)</h3>
+          <h3>Stage 1: heuristic gate (this demo + CLI)</h3>
           <p class="step">A high-recall regex pre-filter over each skill's text. It is tuned to catch anything suspicious, so it over-flags by design. A match means "candidate," not "verdict." On its own it reports findings as unverified.</p>
         </div>
         <div class="card">
-          <h3>Stage 2 — model verdict (CLI only)</h3>
+          <h3>Stage 2: model verdict (CLI only)</h3>
           <p class="step">A backend confirms or clears each candidate and sets severity. A confirmed hit is HIGH; a gate hit the model does not confirm stays flagged at MEDIUM for review. The gate hit is never silently dropped (recall-favoring).</p>
         </div>
         <div class="card" style="grid-column:1/-1">
           <h3>Backends (route with <span class="mono">--backend</span>)</h3>
           <ul class="findfreq">
-            <li><span><span class="mono">deberta</span> — local ProtectAI DeBERTa injection classifier (ONNX, CPU, deterministic). Default when installed.</span><span class="n">Apache-2.0</span></li>
-            <li><span><span class="mono">gguf</span> — local Qwen2.5-7B via llama.cpp (Metal). Reasoning + JSON verdict.</span><span class="n">Apache-2.0</span></li>
-            <li><span><span class="mono">openai</span> — any OpenAI-compatible server (Ollama, llama-server, vLLM, OpenRouter).</span><span class="n">route anything</span></li>
-            <li><span><span class="mono">claude</span> — Anthropic API.</span><span class="n">cloud</span></li>
-            <li><span><span class="mono">heuristic</span> — gate only (what this demo runs).</span><span class="n">no model</span></li>
+            <li><span><span class="mono">deberta</span>: local ProtectAI DeBERTa injection classifier (ONNX, CPU, deterministic). Default when installed.</span><span class="n">Apache-2.0</span></li>
+            <li><span><span class="mono">gguf</span>: local Qwen2.5-7B via llama.cpp (Metal). Reasoning + JSON verdict.</span><span class="n">Apache-2.0</span></li>
+            <li><span><span class="mono">openai</span>: any OpenAI-compatible server (Ollama, llama-server, vLLM, OpenRouter).</span><span class="n">route anything</span></li>
+            <li><span><span class="mono">claude</span>: Anthropic API.</span><span class="n">cloud</span></li>
+            <li><span><span class="mono">heuristic</span>: gate only (what this demo runs).</span><span class="n">no model</span></li>
           </ul>
           <p class="disclosure">Install and run: <span class="mono">uv pip install -e ".[deberta]"</span> then <span class="mono">a2a-audit &lt;url&gt; --backend deberta</span>. See the repo README for Qwen and routing.</p>
         </div>
@@ -233,7 +233,7 @@
 
     <section class="agg" id="posture">
       <h2 class="sec">Real-world posture</h2>
-      <p class="lead">An aggregate snapshot of <span id="agg-n">—</span> live agent cards from a public registry, audited with a2a-audit. Aggregate only: no individual agent is named or labeled vulnerable (responsible disclosure).</p>
+      <p class="lead">An aggregate snapshot of <span id="agg-n">-</span> live agent cards from a public registry, audited with a2a-audit. Aggregate only: no individual agent is named or labeled vulnerable (responsible disclosure).</p>
       <div class="agg-grid">
         <div class="card">
           <h3>Grade distribution</h3>
@@ -241,7 +241,7 @@
         </div>
         <div class="card">
           <h3>Mean posture score</h3>
-          <div class="statbig" id="agg-mean">—</div>
+          <div class="statbig" id="agg-mean">-</div>
           <p class="disclosure" id="agg-specs"></p>
         </div>
         <div class="card" style="grid-column:1/-1">
