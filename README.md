@@ -26,12 +26,23 @@ Every check is static and offline except the skill-description intent check, whi
 ## Install
 
 ```bash
-uv pip install -e .                # core: all static checks + heuristic gate
-uv pip install -e ".[deberta]"     # + local DeBERTa injection classifier (recommended)
+pip install -e .          # installs deberta + gguf libs automatically
+a2a-audit-pull-models     # fetches DeBERTa ONNX and Qwen GGUF weights into models/
 a2a-audit --version
 ```
 
-With no model backend installed, the skill-intent check runs in **degraded heuristic mode** (clearly marked in the output). Installing a backend turns on model-verified classification. See [Skill classifier backends](#skill-classifier-backends).
+A plain `pip install` now includes the DeBERTa and GGUF classifier libraries.
+After installation, run `a2a-audit-pull-models` once to download the model
+weights (~700 MB DeBERTa + ~4.4 GB Qwen GGUF). The Qwen download compiles
+`llama-cpp-python` from source, so a C compiler and cmake must be available.
+
+With model weights present, the default `auto` mode selects `deberta`
+(local, fast, deterministic). If weights are missing the tool falls back to
+heuristic mode (clearly marked in output) and prints a hint to run
+`a2a-audit-pull-models`.
+
+The `openai` and `claude` backends are optional configuration changes only.
+See [Skill classifier backends](#skill-classifier-backends).
 
 ## Usage
 
@@ -90,27 +101,27 @@ Pick a backend with `--backend` (or the `A2A_AUDIT_BACKEND` env var):
 
 | Backend | What it is | License | Install |
 |---|---|---|---|
-| `heuristic` | Gate only, no model (degraded, marked unverified) | n/a | core |
-| `deberta` | Local [ProtectAI DeBERTa](https://huggingface.co/protectai/deberta-v3-base-prompt-injection-v2) injection classifier (ONNX, CPU, deterministic). Default when installed. | Apache-2.0 | `.[deberta]` + model download |
-| `gguf` | Local [Qwen2.5-7B](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct) via llama.cpp (Metal). Reasoning + JSON verdict. | Apache-2.0 | `.[gguf]` + GGUF download |
-| `openai` | Any OpenAI-compatible server: Ollama, llama-server, vLLM, OpenRouter | varies | core (`httpx`) |
-| `claude` | Anthropic API | cloud | `.[llm]` + `ANTHROPIC_API_KEY` |
+| `heuristic` | Gate only, no model (degraded, marked unverified) | n/a | default install (no weights) |
+| `deberta` | Local [ProtectAI DeBERTa](https://huggingface.co/protectai/deberta-v3-base-prompt-injection-v2) injection classifier (ONNX, CPU, deterministic). Default auto-selected when weights are present. | Apache-2.0 | default install + `a2a-audit-pull-models` |
+| `gguf` | Local [Qwen2.5-7B](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct) via llama.cpp (Metal). Reasoning + JSON verdict. | Apache-2.0 | default install + `a2a-audit-pull-models` |
+| `openai` | Any OpenAI-compatible server: Ollama, llama-server, vLLM, OpenRouter | varies | core (`httpx`), explicit `--backend openai` |
+| `claude` | Anthropic API | cloud | `pip install -e ".[llm]"` + `ANTHROPIC_API_KEY`, explicit `--backend claude` |
 | `auto` | First available, local-first: deberta → gguf → openai → claude → heuristic | | default |
 
 ### Install the local models
 
-```bash
-# DeBERTa (recommended default: fast, deterministic, ~700MB ONNX)
-uv pip install -e ".[deberta]"
-hf download protectai/deberta-v3-base-prompt-injection-v2 --include "onnx/*" \
-  --local-dir models/deberta-injection
-a2a-audit https://example-agent.com --backend deberta
+The happy path after a plain `pip install -e .`:
 
-# Qwen2.5-7B (local reasoning model, ~4.4GB GGUF)
-uv pip install -e ".[gguf]"
-hf download bartowski/Qwen2.5-7B-Instruct-GGUF Qwen2.5-7B-Instruct-Q4_K_M.gguf \
-  --local-dir models && mv models/Qwen2.5-7B-Instruct-Q4_K_M.gguf models/qwen2.5-7b-instruct-q4_k_m.gguf
-a2a-audit https://example-agent.com --backend gguf
+```bash
+# Download both default model weights (skip files already present)
+a2a-audit-pull-models          # fetches deberta + gguf
+
+# Selective download
+a2a-audit-pull-models --deberta   # DeBERTa only (~700 MB)
+a2a-audit-pull-models --gguf      # Qwen GGUF only (~4.4 GB)
+
+# Run an audit — auto mode selects deberta
+a2a-audit https://example-agent.com
 ```
 
 ### Route to any model

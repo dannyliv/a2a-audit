@@ -42,7 +42,16 @@ def _build_classifier(
         cfg.claude_model = backend_model
         if backend == "gguf":
             cfg.gguf_path = backend_model  # treat as a path override for gguf
-    return SkillClassifier(mode=backend, config=cfg)
+    classifier = SkillClassifier(mode=backend, config=cfg)
+    if classifier.is_degraded:
+        import sys
+
+        print(
+            "hint: classifier fell back to heuristic (no model available)."
+            " Run `a2a-audit-pull-models` to fetch the default local models.",
+            file=sys.stderr,
+        )
+    return classifier
 
 
 def _exit_code(results: list[AuditResult], fail_on: Severity) -> int:

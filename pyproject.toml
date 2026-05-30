@@ -27,19 +27,33 @@ dependencies = [
   "cryptography>=42.0",
   "jwcrypto>=1.5",
   "rfc8785>=0.1.4",
+  # Local classifier backends — included by default so a plain `pip install`
+  # gets both deberta and gguf. llama-cpp-python compiles from source; a C
+  # compiler and cmake are required (pre-built wheels available for common
+  # platforms via pip's find-links).
+  "onnxruntime>=1.17",
+  "tokenizers>=0.15",
+  "numpy>=1.24",
+  "llama-cpp-python>=0.2.80",
+  # huggingface-hub is needed by `a2a-audit-pull-models` to download weights.
+  "huggingface-hub>=0.23",
 ]
 
 [project.optional-dependencies]
-# Skill-intent classifier backends (the auditor runs degraded heuristic-only
-# without any of these). Pick the backend that fits your trust/cost model:
-deberta = ["onnxruntime>=1.17", "tokenizers>=0.15", "numpy>=1.24"]  # local, default
-gguf = ["llama-cpp-python>=0.2.80"]                                  # local Qwen2.5 etc.
-llm = ["anthropic>=0.40"]                                           # Claude (cloud)
-local = ["onnxruntime>=1.17", "tokenizers>=0.15", "numpy>=1.24", "llama-cpp-python>=0.2.80"]
+# Convenience aliases — the default install already covers deberta + gguf.
+# These remain so existing `pip install -e ".[deberta]"` invocations still work.
+deberta = []  # no-op: onnxruntime/tokenizers/numpy are in default deps
+gguf = []     # no-op: llama-cpp-python is in default deps
+local = []    # no-op: both local backends are in default deps
+# Cloud / optional classifier backends — require explicit configuration:
+llm = ["anthropic>=0.40"]   # Claude via Anthropic API (needs ANTHROPIC_API_KEY)
 dev = ["pytest>=8.0", "ruff>=0.6", "mypy>=1.10", "pip-audit>=2.7", "bandit>=1.7"]
 
 [project.scripts]
 a2a-audit = "a2a_audit.cli:app"
+# Fetches DeBERTa and Qwen GGUF model weights into models/ using huggingface-hub.
+# Run once after installation: a2a-audit-pull-models
+a2a-audit-pull-models = "a2a_audit.setup_models:main"
 
 [project.urls]
 Homepage = "https://github.com/dannyliv/a2a-audit"

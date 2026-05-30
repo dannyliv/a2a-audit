@@ -78,7 +78,10 @@ verdict. The model stage is a **pluggable backend** (`backends.py`):
 
 Routing (`build_backend`): explicit `--backend` > `A2A_AUDIT_BACKEND` env >
 auto-detect (local-first: deberta → gguf → openai → claude → heuristic). Model
-weights live in `models/` and are never committed.
+weights live in `models/` and are never committed. The deberta and gguf
+libraries are installed by default (`pip install`); weights are fetched
+separately with `a2a-audit-pull-models`. The openai and claude backends require
+explicit configuration only.
 
 **Union, never veto.** A heuristic gate hit is never downgraded to fully benign
 by the model. The model refines severity: a confirmed hit is HIGH, a gate hit the
